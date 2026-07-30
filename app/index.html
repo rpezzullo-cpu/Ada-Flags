@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
@@ -620,8 +621,12 @@
       <div class="card">
         <div class="card-title">Data source</div>
         <div class="card-desc" style="margin-bottom:16px">Where contribution data is read from.</div>
+        <label>Team data link</label>
+        <div class="hint">The Ada Hub data feed (Power Automate URL) from the pinned Teams message. Takes priority over the sources below.</div>
+        <input type="text" id="setFlowUrl" placeholder="https://prod-…logic.azure.com/workflows/…">
+        <div style="height:12px"></div>
         <label>SharePoint site URL</label>
-        <input type="text" id="setSite" value="https://suitsupply-my.sharepoint.com/personal/rpezzullo_suitsupply_com">
+        <input type="text" id="setSite" placeholder="https://suitsupply.sharepoint.com/sites/…">
         <div style="height:12px"></div>
         <label>List name</label>
         <input type="text" id="setList" value="Ada Case Escalations">
@@ -699,6 +704,20 @@
   </div>
 </div>
 
+<!-- FIRST-RUN SETUP -->
+<div class="overlay" id="setupOverlay">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-ic" style="background:color-mix(in srgb,var(--accent) 14%,transparent); color:var(--accent)"><i class="ti ti-plug-connected"></i></div><div class="modal-title">Welcome to Ada Hub</div><button class="modal-x" onclick="closeSetup()" aria-label="Close">&times;</button></div>
+    <div class="gate-note">One-time setup on this device. Your details personalise your profile; the team data link connects the live contribution feed (it's pinned in the Self-Service Troubleshooting channel).</div>
+    <label>Your name</label><input type="text" id="suName" placeholder="e.g. Jesse Harbers" style="margin-bottom:12px">
+    <label>Your Suitsupply email</label><input type="text" id="suEmail" placeholder="name@suitsupply.com" style="margin-bottom:12px">
+    <label>Team data link</label><div class="hint">Paste the Ada Hub data link from the pinned Teams message. Leave blank to explore in demo mode.</div>
+    <input type="text" id="suFlow" placeholder="https://prod-…logic.azure.com/workflows/…">
+    <div class="btn-row"><button class="btn" onclick="saveSetup()"><i class="ti ti-check" style="vertical-align:-2px; margin-right:5px"></i>Get started</button><button class="btn btn-ghost" onclick="closeSetup()">Later</button></div>
+    <div id="suErr" style="color:var(--red); font-size:12px; margin-top:12px; display:none"></div>
+  </div>
+</div>
+
 <!-- NEW DISCUSSION -->
 <div class="overlay" id="discOverlay">
   <div class="modal">
@@ -758,6 +777,34 @@ function lockIdentityUI(){
     a.textContent='Sign out';footer.appendChild(a);
   }
 }
+
+/* ---------- first-run setup (GitHub Pages / no-SSO mode) ----------
+   Without an identity provider, ask once per device: who are you, and where is
+   the team data feed (a Power Automate HTTP-trigger URL, shared via a pinned
+   Teams message so it never appears in the public repo). */
+function needsSetup(){return !SSO_ACTIVE && !Store.get('setupDone',false);}
+function openSetup(){
+  document.getElementById('suName').value=Store.get('name','')==='Ray Pezzullo'&&!Store.get('setupDone',false)?'':me();
+  document.getElementById('suEmail').value=myEmail();
+  document.getElementById('suFlow').value=Store.get('flowUrl','');
+  document.getElementById('suErr').style.display='none';
+  document.getElementById('setupOverlay').classList.add('show');
+}
+function closeSetup(){Store.set('setupDone',true);document.getElementById('setupOverlay').classList.remove('show');}
+async function saveSetup(){
+  const name=document.getElementById('suName').value.trim();
+  const email=document.getElementById('suEmail').value.trim().toLowerCase();
+  const flow=document.getElementById('suFlow').value.trim();
+  const err=document.getElementById('suErr');
+  if(!name){err.textContent='Please enter your name.';err.style.display='block';return;}
+  if(email&&!/^[^@\s]+@suitsupply\.com$/.test(email)){err.textContent='Use your name@suitsupply.com email.';err.style.display='block';return;}
+  if(flow&&!/^https:\/\//.test(flow)){err.textContent='The team data link should be an https:// URL.';err.style.display='block';return;}
+  Store.set('name',name);if(email)Store.set('email',email);Store.set('flowUrl',flow);Store.set('setupDone',true);
+  document.getElementById('setupOverlay').classList.remove('show');
+  const nameInput=document.getElementById('setName');if(nameInput)nameInput.value=name;
+  await loadData();TICKETS=[];enrichTickets();renderUC();renderLB();syncChip();
+  toast(LIVE?'Connected — live data loaded':'Saved — running in demo mode');
+}
 const USE_CASES=['WISMO','Returns & Refunds','Product related','Store related','Complaint','BOPIS','Other'];
 const LEVEL_NAMES=['Scout','Spotter','Contributor','Champion'];
 const LEVEL_CLS=['lv0b','lv1b','lv2b','lv3b'];
@@ -779,7 +826,7 @@ const SAMPLE_DESC={
   'Other':['Edge case Ada could not handle','Ada response was off-topic','Language switch confused Ada','Ada gave a generic non-answer']
 };
 
-let DATA=[], TICKETS=[], weekOffset=0, activeUC=null, tkStatus='all', dcFilter='all';
+let DATA=[], TICKETS=[], weekOffset=0, activeUC=null, tkStatus='all', dcFilter='all', LIVE=false;
 
 function levels(){return Store.get('levels',[1,3,10,25]);}
 function me(){return Store.get('name','Ray Pezzullo');}
@@ -796,6 +843,7 @@ function inWeek(it,off){const d=new Date(it.SubmittedAt);const{start,end}=weekRa
 function agg(rows){const m={};rows.forEach(r=>{const n=r.SubmittedBy||'Unknown';if(!m[n])m[n]={name:n,count:0};m[n].count++;});return Object.values(m).sort((a,b)=>b.count-a.count);}
 function countAll(name){return DATA.filter(r=>r.SubmittedBy===name).length;}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2300);}
+function openLink(u){if(u)window.open(u,'_blank','noopener');}
 function go(r){document.querySelector(`.nav-item[data-route="${r}"]`)?.click();}
 
 /* ---------- routing ---------- */
@@ -1019,7 +1067,7 @@ function initSeg(id,key,def,apply){const el=document.getElementById(id);const cu
 function saveIdentity(){const v=document.getElementById('setName').value.trim();if(v)Store.set('name',v);Store.set('role',document.getElementById('setRole').value);Store.set('team',document.getElementById('setTeam').value);syncChip();renderProfile();toast('Identity saved');}
 function saveLevels(){const L=[1,2,3,4].map(i=>Math.max(1,parseInt(document.getElementById('lvl'+i).value)||1));Store.set('levels',L);renderLB();renderProfile();syncChip();toast('Thresholds updated');}
 function savePrefs(){Store.set('lang',document.getElementById('setLang').value);Store.set('tz',document.getElementById('setTz').value);Store.set('df',document.getElementById('setDf').value);Store.set('channel',document.getElementById('setChannel').value);toast('Preferences saved');}
-function saveSource(){Store.set('site',document.getElementById('setSite').value.trim());Store.set('list',document.getElementById('setList').value.trim());Store.set('formUrl',document.getElementById('setFormUrl').value.trim());document.getElementById('srcStatus').textContent='Reloading…';loadData().then(()=>{TICKETS=[];enrichTickets();document.getElementById('srcStatus').textContent='Loaded '+DATA.length+' records';renderUC();renderLB();toast('Saved');});}
+function saveSource(){Store.set('flowUrl',document.getElementById('setFlowUrl').value.trim());Store.set('site',document.getElementById('setSite').value.trim());Store.set('list',document.getElementById('setList').value.trim());Store.set('formUrl',document.getElementById('setFormUrl').value.trim());document.getElementById('srcStatus').textContent='Reloading…';loadData().then(()=>{TICKETS=[];enrichTickets();document.getElementById('srcStatus').textContent=(LIVE?'Live · ':'Demo · ')+DATA.length+' records';renderUC();renderLB();toast('Saved');});}
 function exportMyData(){const mine=DATA.filter(r=>r.SubmittedBy===me());const blob=new Blob([JSON.stringify({user:me(),flags:mine},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='my-ada-data.json';a.click();toast('Your data exported');}
 function clearLocal(){['theme','density','textsize','a11y_motion','a11y_contrast','a11y_dys','n_milestone','n_digest','n_mention','n_dup','n_impact','p_board','p_anon','p_activity','role','team','lang','tz','df','channel'].forEach(k=>Store.del(k));applyDisplay();renderThemes();renderToggles();toast('Local settings reset');}
 
@@ -1033,7 +1081,7 @@ const FAQS=[
   {q:'How are duplicates detected?',a:'Tickets sharing the same use case and very similar description are flagged as possible duplicates so the team can merge context instead of repeating work.'},
   {q:'What is the Patterns view?',a:'It aggregates flags by use case to surface recurring problems, then tracks each one from Identified to In progress to Shipped as Ada improves.'},
   {q:'Does my flag actually change anything?',a:'Yes — flagged cases are reviewed and used to improve Ada. When a fix ships from your flag, it appears in your Impact feed.'},
-  {q:'Is the data live?',a:'Yes — once you sign in with your Suitsupply account on the hosted site, it reads live contributions from the Ada flag pipeline (the Microsoft Forms responses, with optional live status from Jira). Opened locally or signed out, it runs in demo mode with sample data.'},
+  {q:'Is the data live?',a:'Yes — once you paste the team data link (from the pinned message in Self-Service Troubleshooting) into Settings → Data source, the dashboard reads live contributions straight from the Ada flag pipeline. Without it, it runs in demo mode with sample data.'},
 ];
 function renderFAQ(){document.getElementById('faqList').innerHTML=FAQS.map((f,i)=>`<div class="faq-item"><div class="faq-q" onclick="toggleFAQ(${i})">${f.q}<i class="ti ti-chevron-down"></i></div><div class="faq-a" id="faqa-${i}"><div class="faq-a-inner">${f.a}</div></div></div>`).join('');}
 function toggleFAQ(i){const q=document.querySelectorAll('.faq-q')[i],a=document.getElementById('faqa-'+i),open=q.classList.contains('open');q.classList.toggle('open',!open);a.style.maxHeight=open?'0':a.scrollHeight+40+'px';}
@@ -1069,17 +1117,26 @@ window.addEventListener('beforeunload',wipeRoom);
 
 /* ---------- data ----------
    Load order:
-   1. /api/contributions  — the Cloudflare Functions backend (Jira AH and/or the
-      Forms Excel workbook, normalised server-side). This is the hosted path.
-   2. SharePoint REST direct — only works when the page is served from a
+   1. Team data link — a Power Automate "HTTP request" flow URL that returns the
+      contributions JSON (each user pastes it once; stored on this device only).
+   2. /api/contributions  — an optional hosted backend (e.g. Cloudflare Functions),
+      when the page is deployed behind one.
+   3. SharePoint REST direct — only works when the page is served from a
       SharePoint site itself (same-origin cookie). Kept as an optional fallback.
-   3. demo() — sample data so the UI always renders (local preview / signed out).
+   4. demo() — sample data so the UI always renders (not yet connected).
 */
+function fixDate(v){
+  if(v==null||v==='')return null;
+  // Excel serial numbers (or numeric strings) from "List rows present in a table".
+  const n=typeof v==='number'?v:(/^\d+(\.\d+)?$/.test(String(v).trim())?parseFloat(v):NaN);
+  if(isFinite(n)&&n>20000&&n<80000){const d=new Date(Math.round((n-25569)*86400000));return isNaN(d)?null:d.toISOString();}
+  const d=new Date(v);return isNaN(d)?null:d.toISOString();
+}
 function normalizeRecords(rows){
   return (rows||[]).map(r=>({
     SubmittedBy:      r.SubmittedBy || r.submittedBy || 'Unknown',
     SubmitterEmail:  (r.SubmitterEmail || r.submitterEmail || r.CustomerEmail || '').toLowerCase(),
-    SubmittedAt:      r.SubmittedAt || r.submittedAt || r.created || null,
+    SubmittedAt:      fixDate(r.SubmittedAt || r.submittedAt || r.created || null),
     UseCase:          r.UseCase || r.useCase || 'Other',
     CaseNumber:       r.CaseNumber || r.caseNumber || '',
     OrderNumber:      r.OrderNumber || r.orderNumber || '',
@@ -1087,6 +1144,16 @@ function normalizeRecords(rows){
     IssueDescription: r.IssueDescription || r.issueDescription || r.description || '',
     Status:           r.Status || r.status || ''
   })).filter(r=>r.SubmittedAt);
+}
+async function loadFromFlow(){
+  const u=(Store.get('flowUrl','')||'').trim();
+  if(!u) throw new Error('no flow url');
+  const res=await fetch(u,{headers:{'Accept':'application/json'}});
+  if(!res.ok) throw new Error('flow '+res.status);
+  const d=await res.json();
+  const rows=normalizeRecords(Array.isArray(d)?d:(d.value||d.records||[]));
+  if(!rows.length) throw new Error('flow returned no records');
+  return rows;
 }
 async function loadFromApi(){
   const res=await fetch('/api/contributions',{headers:{'Accept':'application/json'},credentials:'include'});
@@ -1105,13 +1172,17 @@ async function loadFromSharePoint(){
 }
 async function loadData(){
   const sub=document.getElementById('lbSub');
+  try{ DATA=await loadFromFlow();
+       sub.textContent='Live data · '+DATA.length+' total contributions'; LIVE=true; return; }
+  catch(e){ /* fall through */ }
   try{ DATA=await loadFromApi();
-       sub.textContent='Live data · '+DATA.length+' total contributions'; return; }
+       sub.textContent='Live data · '+DATA.length+' total contributions'; LIVE=true; return; }
   catch(e){ /* fall through */ }
   try{ DATA=await loadFromSharePoint();
-       sub.textContent='Live data (SharePoint) · '+DATA.length+' total contributions'; return; }
+       sub.textContent='Live data (SharePoint) · '+DATA.length+' total contributions'; LIVE=true; return; }
   catch(e){ /* fall through */ }
-  demo(); sub.textContent='Demo mode · sign in on the hosted site for live data';
+  demo(); LIVE=false;
+  sub.innerHTML='Demo mode · <a href="#" onclick="openSetup();return false" style="color:var(--accent)">connect your team data</a>';
 }
 function demo(){const names=['Ray Pezzullo','Elisa L.','Jan K.','Marco V.','Sophie T.','Ahmed R.','Lena M.','Tom B.','Nina P.','Karl S.'];const now=new Date();DATA=[];const w={['Ray Pezzullo']:14,['Elisa L.']:9,['Jan K.']:7};
   names.forEach(n=>{const c=w[n]||Math.floor(Math.random()*6)+1;for(let i=0;i<c;i++){const da=Math.floor(Math.random()*25);const d=new Date(now);d.setDate(d.getDate()-da);d.setHours(Math.floor(Math.random()*13)+7);const uc=USE_CASES[Math.floor(Math.random()*USE_CASES.length)];const pool=SAMPLE_DESC[uc];DATA.push({SubmittedBy:n,SubmittedAt:d.toISOString(),UseCase:uc,CaseNumber:'C-'+String(1000+DATA.length).padStart(6,'0'),OrderNumber:'SS-'+(90000+DATA.length),CustomerEmail:'customer'+i+'@email.com',IssueDescription:pool[Math.floor(Math.random()*pool.length)]});}});}
@@ -1128,7 +1199,8 @@ async function init(){
   document.getElementById('setTz').value=Store.get('tz','Europe/Amsterdam');
   document.getElementById('setDf').value=Store.get('df','DD/MM/YYYY');
   document.getElementById('setChannel').value=Store.get('channel','Teams DM');
-  document.getElementById('setSite').value=Store.get('site','https://suitsupply-my.sharepoint.com/personal/rpezzullo_suitsupply_com');
+  document.getElementById('setFlowUrl').value=Store.get('flowUrl','');
+  document.getElementById('setSite').value=Store.get('site','');
   document.getElementById('setList').value=Store.get('list','Ada Case Escalations');
   document.getElementById('setFormUrl').value=Store.get('formUrl','');
   renderThemes();renderToggles();renderFAQ();
@@ -1136,7 +1208,8 @@ async function init(){
   initSeg('segText','textsize','normal',true);
   applyDisplay();
   document.getElementById('weekLabel').textContent=weekLabel(0);
-  loadData().then(()=>{enrichTickets();renderUC();renderLB();syncChip();});
+  loadData().then(()=>{enrichTickets();renderUC();renderLB();syncChip();
+    if(needsSetup())openSetup();});
 }
 init();
 </script>

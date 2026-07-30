@@ -1,171 +1,141 @@
-# Ada Hub — Setup & Hosting Guide (Cloudflare, free)
+# Ada Hub — Setup Guide (GitHub Pages + Power Automate, $0, no admin)
 
-This stands up the Ada Hub dashboard on **Cloudflare Pages** — **$0**, no admin
-required — so the whole CS team opens one URL, signs in once with their
-`name@suitsupply.com` account, and gets a live, per-person dashboard.
-
-**Why it's free and self-serve**
-
-- Cloudflare Pages + Functions free tier: 100K function requests/day, unlimited
-  static traffic, 1 GB KV. Far above what a CS dashboard needs.
-- Corporate login uses an **Entra ID app registration** (free) with only
-  **user-consentable** scopes (`openid profile email`) — no admin consent.
-- Data is read **server-side using your own tokens**: your Jira API token, and a
-  one-time Graph consent on **your own** OneDrive file (`Files.Read`, which is
-  [confirmed to need no admin consent](https://learn.microsoft.com/en-us/graph/permissions-overview)).
+This is the zero-cost, zero-admin path: the dashboard is hosted on **GitHub
+Pages** (free for this public repo), and the live data comes from a small
+**Power Automate flow** you build in ~10 minutes — the same tool the Ada flag
+pipeline already runs on, using the Premium licence you already have.
 
 ```
-CS agent ─► sign in (Entra, Suitsupply only) ─► Ada Hub page (their own view)
-                                                     │
-                                   Cloudflare Functions (secrets stay here)
-                                                     ├── Jira AH   (live status)
-                                                     └── Excel     (Forms responses)
+CS agent ─► https://rpezzullo-cpu.github.io/Ada-Flags/   (GitHub Pages, free)
+                 │  first visit: enters name + suitsupply email,
+                 │  pastes the team data link (pinned in Teams) — once
+                 ▼
+   Power Automate flow "Ada Hub - Data Feed"  (HTTP trigger, your licence)
+                 └── reads "Ada Flags form.xlsx" → returns sanitized JSON
 ```
 
-Your existing Form → Power Automate → Jira + Teams pipeline is untouched; this
-only **reads** what it produces.
+Your Form → Power Automate → Jira + Teams pipeline is untouched; the feed flow
+only **reads** the responses workbook.
+
+**What this trades away vs. paid hosting:** there is no cryptographic corporate
+sign-in. Each person identifies themselves once on their device (name + email),
+and the data link acts as the key — shared only inside Teams, never published
+in the repo. Leaderboard-grade data only; customer PII is stripped by the flow
+(Step 2). The full SSO design is kept in [docs/CLOUDFLARE.md](CLOUDFLARE.md) as
+an upgrade path if the constraints ever change.
 
 ---
 
-## Prerequisites
+## Step 1 — Turn on GitHub Pages (one click)
 
-- A free Cloudflare account.
-- Ability to create **one Entra app registration** in the Suitsupply tenant.
-  Microsoft's default allows any user to do this. If your tenant disabled it,
-  that single "create app registration" click is the *only* thing an admin must
-  do — **no permission consent is ever required**.
-- This GitHub repo: `rpezzullo-cpu/Ada-Flags`.
+1. Go to the repo → **Settings → Pages**.
+2. Under **Build and deployment → Source**, choose **GitHub Actions**. Done.
+3. The deploy workflow (`.github/workflows/pages.yml`) publishes `app/` on every
+   push. After the next push (or **Actions → Deploy Ada Hub to GitHub Pages →
+   Run workflow**), the site is live at:
 
----
+   **`https://rpezzullo-cpu.github.io/Ada-Flags/`**
 
-## Step 1 — Deploy to Cloudflare Pages
+Open it — it runs in demo mode until Step 2's data link exists.
 
-1. [dash.cloudflare.com](https://dash.cloudflare.com) → **Workers & Pages** →
-   **Create** → **Pages** → **Connect to Git** → pick `rpezzullo-cpu/Ada-Flags`.
-2. Build settings:
-   - **Production branch:** `claude/cs-feedback-dashboard-vg98x6` (or `main` once merged).
-   - **Framework preset:** None.
-   - **Build command:** *(leave empty)*.
-   - **Build output directory:** `app`
-3. **Save and Deploy.** You get a URL like `https://ada-hub.pages.dev`. Note it —
-   that's your `APP_BASE_URL`. (Opening it now redirects to a sign-in that isn't
-   wired yet — finish Steps 2–4.)
-
-### Create the KV namespace (cache + token store)
-
-4. **Workers & Pages → KV → Create a namespace**, name it `ADA_KV`.
-5. Your Pages project → **Settings → Functions → KV namespace bindings** →
-   **Add** → Variable name **`ADA_KV`** → select the namespace → **Save**.
+> The workflow also tries to enable Pages automatically on its first run, so
+> steps 1–2 may already be done for you — check Settings → Pages.
 
 ---
 
-## Step 2 — One Entra app registration (login + workbook read)
+## Step 2 — Build the data feed flow (~10 min, Power Automate)
 
-1. [Azure Portal](https://portal.azure.com) → **Microsoft Entra ID** →
-   **App registrations** → **New registration**.
-   - **Name:** `Ada Hub`.
-   - **Supported account types:** *Single tenant* (this is what locks sign-in to
-     `@suitsupply.com`).
-   - **Redirect URI:** platform **Web** → `https://<your-pages-url>/api/auth/callback`
-   - **Register.**
-2. **Authentication → Add a platform / Add URI:** also add
-   `https://<your-pages-url>/api/setup/graph-callback`. Save.
-3. **Overview:** copy **Application (client) ID** and **Directory (tenant) ID**.
-4. **Certificates & secrets → New client secret** → copy the **Value** now.
-5. **API permissions → Add → Microsoft Graph → Delegated → `Files.Read`** →
-   Add. (Delegated `Files.Read` is user-consentable — you do **not** need to
-   click "Grant admin consent".)
+Create a new flow named **"Ada Hub - Data Feed"**:
 
-That's it — no application permissions, no admin consent.
+1. **Trigger:** *When an HTTP request is received* (Premium — covered by the
+   licence you already use for the Jira connector).
+   - Method: **GET** (under advanced options).
+   - Who can trigger the flow: *Anyone* (the URL itself contains the secret
+     signature — treat it like a password).
+2. **Action:** *Excel Online (Business) → List rows present in a table*.
+   - Location/Library/File: your **Ada Flags form.xlsx**.
+   - Table: the form-responses table (usually `Table1` on the first sheet).
+   - **Advanced options → DateTime Format: ISO 8601** ← important, this makes
+     dates parse correctly in the dashboard.
+3. **Action:** *Select* (Data Operations) — maps and **sanitizes** the columns.
+   From: `value` (dynamic content from List rows). Map (adjust left side to your
+   exact column names):
 
----
+   | Key (type exactly) | Value (dynamic content from the row) |
+   | --- | --- |
+   | `SubmittedBy` | Name |
+   | `SubmitterEmail` | Email |
+   | `SubmittedAt` | Completion time |
+   | `UseCase` | Use case |
+   | `CaseNumber` | Case number (C-number) |
+   | `OrderNumber` | Order number |
+   | `IssueDescription` | What happened? What should have happened? |
+   | `Store` | Where do you work? |
 
-## Step 3 — Add the settings to Cloudflare
+   **Deliberately leave out** customer email / phone / Salesforce ID — the
+   dashboard doesn't need them, so the feed shouldn't carry them.
+4. **Action:** *Response* (also Premium, same licence).
+   - Status code: `200`
+   - Headers: `Content-Type` = `application/json`, and
+     `Access-Control-Allow-Origin` = `*` (this is what lets the GitHub page read it).
+   - Body: **Output** of the Select step.
+5. **Save**, then copy the **HTTP GET URL** the trigger now shows. That URL is
+   your **team data link**.
 
-Pages project → **Settings → Variables and Secrets** → add these (mark the
-secrets as *Encrypted*), then redeploy:
-
-| Name | Value |
-| --- | --- |
-| `TENANT_ID` | `fbe43f29-18b2-46ca-a741-bcc4672ba19c` |
-| `ENTRA_CLIENT_ID` | Application (client) ID from Step 2 |
-| `ENTRA_CLIENT_SECRET` | client secret **Value** from Step 2 |
-| `SESSION_SECRET` | a long random string you invent (cookie signing key) |
-| `APP_BASE_URL` | `https://<your-pages-url>` |
-| `OWNER_EMAIL` | `rpezzullo@suitsupply.com` |
-| `DATA_SOURCE` | `both` |
-| `EXCEL_SHARE_URL` | share link to **Ada Flags form.xlsx** (Share → Copy link) |
-| `JIRA_BASE_URL` | `https://suitsupply.atlassian.net` |
-| `JIRA_EMAIL` | your Atlassian email |
-| `JIRA_API_TOKEN` | from <https://id.atlassian.com/manage-profile/security/api-tokens> |
-| `JIRA_PROJECT` | `AH` |
-
-(Full list with descriptions is in `.dev.vars.example`.)
+**Test it:** paste the URL in a browser tab — you should see JSON rows.
 
 ---
 
-## Step 4 — Connect the workbook (one time, you only)
+## Step 3 — Share the link with the team (once)
 
-1. Sign in to the site once (`https://<your-pages-url>`) with your Suitsupply
-   account.
-2. Visit `https://<your-pages-url>/api/setup/graph`. Approve the one-time consent
-   ("read your files"). You'll see **"Workbook connected."** This stores your
-   Graph refresh token in KV so the backend can read the Forms responses on the
-   team's behalf. Nobody else can run this (it's locked to `OWNER_EMAIL`).
+1. Open the dashboard → the welcome dialog asks for name, email, and the team
+   data link → paste the flow URL. (Later: Settings → Data source.)
+2. Post + **pin** a message in the *Self-Service Troubleshooting* channel:
 
-> If you skip this, everything still works from **Jira** (live status +
-> leaderboard); you just won't get the richer Excel fields (use case, case
-> number) until it's done.
+   > 📊 **Ada Hub dashboard:** https://rpezzullo-cpu.github.io/Ada-Flags/
+   > First time: enter your name + Suitsupply email, and paste this team data
+   > link when asked: `<flow URL>`
 
----
+3. Optionally add the dashboard as a **Teams tab** (Website tab type) in the
+   channel, and point the "View full leaderboard" button of
+   `weekly_leaderboard_card.json` at the site.
 
-## Step 5 — Verify
-
-1. `https://<your-pages-url>/api/health` → expect `resolvedSource: "both"`,
-   `auth` all `true`, and `excel.graphConnected: true` after Step 4. (No secrets
-   are shown.)
-2. Open the site: you're sent to Microsoft sign-in, land back on the page, see
-   your name in the bottom-left chip, and the header reads **"Live data · N"**.
-3. A colleague opens the same URL, signs in with their own account, sees their
-   own profile. A non-Suitsupply account is refused (single-tenant).
+Each person does this once per device; everything else is automatic.
 
 ---
 
-## Step 6 — Share it
+## How the pieces behave
 
-- Send `https://<your-pages-url>` to the CS team (or add a **Custom domain** in
-  Cloudflare Pages, e.g. `ada-hub.suitsupply.com`).
-- Pin it as a **Teams tab** in the Self-Service Troubleshooting channel.
-- Point the "View full leaderboard" button in `weekly_leaderboard_card.json` and
-  the launcher card at the URL.
-
----
+- **Live data:** the page fetches the flow URL on every load (Power Automate
+  free-tier HTTP limits are far above CS-team traffic).
+- **Per-person view:** profile/impact/tickets match rows by the email entered at
+  first run against the form's submitter email.
+- **Status:** estimated from ticket age (New → In Review → Acted On → Closed).
+  Live Jira status needs a server and is part of the Cloudflare upgrade path.
+- **Demo mode:** without a data link the page shows sample data — safe for the
+  public internet; no real data is ever in the repo or the page itself.
 
 ## Troubleshooting
 
-- **Redirect/"reply URL mismatch" at sign-in** — the redirect URIs in Step 2
-  must exactly match `https://<your-pages-url>/api/auth/callback` and
-  `/api/setup/graph-callback`.
-- **`/api/health` shows `configured: false`** — a variable is missing/misspelled
-  (Step 3), or you didn't redeploy after adding them.
-- **Excel empty / `graphConnected: false`** — run Step 4 as `OWNER_EMAIL`. If it
-  fails, re-approve the consent prompt (the refresh token needs `offline_access`).
-- **`/api/contributions` 502** — Jira token wrong, or the `EXCEL_SHARE_URL`
-  doesn't point at the live workbook.
-- **Wrong worksheet** — set `EXCEL_WORKSHEET` to the exact tab name (default is
-  the first sheet).
+- **Still in demo mode after pasting the link** — open the link in a browser
+  tab: if you see JSON, check for a stray space when pasting; if you see an
+  error, re-check Step 2 (the Response action must return the Select output).
+- **Dates look wrong / everything shows "today"** — set **DateTime Format =
+  ISO 8601** on the List rows action (Step 2.2).
+- **Names show as emails** — the form's Name column wasn't mapped in the Select
+  step; map `SubmittedBy` to the responder-name column.
+- **CORS error in the browser console** — the `Access-Control-Allow-Origin: *`
+  header is missing on the Response action.
+- **Rotating the link** — if the URL ever leaks, open the flow → trigger →
+  regenerate the URL, and update the pinned message. Old links stop working.
 
----
+## Security posture (plain terms)
 
-## Local development
-
-```bash
-npm i -g wrangler
-cp .dev.vars.example .dev.vars     # fill in secrets
-npx wrangler pages dev app         # http://localhost:8788
-```
-
-Set `ALLOW_ANONYMOUS="true"` in `.dev.vars` to load data without signing in
-while developing. For KV locally, wrangler creates a local namespace
-automatically; the Graph setup route needs a real refresh token, so Excel data
-is easiest to verify once deployed.
+- The page is public but contains **no data and no secrets** — just the UI.
+- The data link is the key: it lives in Teams (tenant-only) and in each user's
+  browser storage, never in the repo. It returns leaderboard-grade data with
+  customer PII stripped at the source.
+- Identity is self-declared (no SSO) — fine for gamification and personal
+  views; not an authorization boundary. If that ever needs to harden, the
+  Cloudflare + Entra design in [docs/CLOUDFLARE.md](CLOUDFLARE.md) adds true
+  corporate sign-in at ~$0 (it needs an Entra app registration).

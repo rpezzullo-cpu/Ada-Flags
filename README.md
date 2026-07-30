@@ -1,45 +1,37 @@
 # Ada Hub — CS Contribution Platform
 
-A hosted, single-sign-on dashboard for the Suitsupply Customer Service team. It
-turns the **Ada flag pipeline** (Microsoft Form → Power Automate → Jira `AH` +
-Teams) into a live leaderboard, ticket tracker, patterns view, and per-person
-profile — so flagging an Ada case feels rewarding and the team can see its
-collective impact.
+A hosted dashboard for the Suitsupply Customer Service team. It turns the
+**Ada flag pipeline** (Microsoft Form → Power Automate → Jira `AH` + Teams) into
+a live leaderboard, ticket tracker, patterns view, and per-person profile — so
+flagging an Ada case feels rewarding and the team can see its collective impact.
 
-Every CS agent opens one URL, signs in once with their `name@suitsupply.com`
-account, and gets their own dedicated view. Nobody outside the tenant can get in.
+Every CS agent opens one URL, identifies themselves once, and gets their own
+dedicated view.
 
-## How it fits together
+**Live site:** `https://rpezzullo-cpu.github.io/Ada-Flags/`
+
+## How it fits together ($0 stack)
 
 | Layer | What it is |
 | --- | --- |
-| **Frontend** (`app/index.html`) | The full Ada Hub UI — leaderboard, impact feed, My tickets, Feedback hub, Patterns, Profile, Settings. Self-contained HTML/CSS/JS. Reads identity from `/api/me` and data from `/api/contributions`, with a demo-mode fallback so it always renders. |
-| **Backend** (`functions/`) | Cloudflare Pages Functions (ESM, no external deps). Handles Entra ID sign-in, reads the Forms response workbook via Microsoft Graph, and (optionally) live ticket status from Jira. Secrets stay server-side. |
-| **Auth + hosting** | Cloudflare Pages (free tier) with Entra ID sign-in locked to the Suitsupply tenant. **$0** — no admin consent required. |
+| **Frontend** (`app/index.html`) | The full Ada Hub UI — leaderboard, impact feed, My tickets, Feedback hub, Patterns, Profile, Settings. Self-contained HTML/CSS/JS with a demo-mode fallback so it always renders. |
+| **Hosting** | **GitHub Pages** (free for this public repo), deployed by `.github/workflows/pages.yml` on every push. |
+| **Data feed** | A **Power Automate flow** ("Ada Hub - Data Feed") with an HTTP trigger that reads the *Ada Flags form.xlsx* responses and returns sanitized JSON (customer PII stripped at the source). Uses the Premium licence the pipeline already has. |
+| **Identity** | First-run prompt: name + `@suitsupply.com` email, stored on the device. The team data link (shared only inside Teams, never in this repo) unlocks live data. |
 
-## Data sources
+The page itself contains **no data and no secrets** — safe to host publicly.
 
-- **Excel — "Ada Flags form.xlsx"** (the Microsoft Forms response sheet):
-  the rich source. Carries submitter, timestamp, use case, case number, order,
-  and description — everything the leaderboard, patterns, and profiles need.
-  Zero change to your existing flow.
-- **Jira `AH`** (optional): live ticket **status**. Jira holds submitter email +
-  description + status but not use case / case number, so it's used to enrich
-  status rather than as the primary source.
+## Getting started
 
-Choose with the `DATA_SOURCE` app setting: `excel` (default), `jira`, or `both`.
+**[docs/SETUP.md](docs/SETUP.md)** — the full guide (~15 min total):
 
-## API
+1. Repo **Settings → Pages → Source: GitHub Actions** (one click).
+2. Build the "Ada Hub - Data Feed" flow in Power Automate (HTTP trigger →
+   List rows from the workbook → Select (sanitize) → Response with CORS).
+3. Pin the site URL + data link in the Self-Service Troubleshooting channel;
+   optionally add the site as a Teams tab.
 
-| Endpoint | Returns |
-| --- | --- |
-| `GET /api/me` | The signed-in Suitsupply user (from the session cookie). |
-| `GET /api/contributions` | Normalized contribution records for the dashboard. |
-| `GET /api/health` | Which data sources are configured (no secrets). |
-| `GET /api/auth/login` · `callback` · `logout` | Entra ID sign-in flow. |
-| `GET /api/setup/graph` | One-time, owner-only: connect the workbook via Graph. |
-
-Record shape:
+## Data record shape
 
 ```json
 {
@@ -49,37 +41,32 @@ Record shape:
   "UseCase": "WISMO",
   "CaseNumber": "C-000123",
   "OrderNumber": "SS-98765",
-  "CustomerEmail": "cust@x.com",
   "IssueDescription": "Ada gave the wrong ETA",
-  "Store": "Customer Service HQ",
-  "Status": "Acted On"
+  "Store": "Customer Service HQ"
 }
 ```
 
-## Deploy
+The frontend accepts this from any source (team data link, a hosted `/api`, or
+SharePoint REST) and estimates ticket status from age when no live status is
+provided.
 
-See **[docs/SETUP.md](docs/SETUP.md)** for the full click-by-click guide
-(Cloudflare Pages, one Entra app registration, variables, optional Jira,
-verification). Summary — all free, no admin consent:
+## Upgrade path: true corporate SSO
 
-1. Create a **Cloudflare Pages** project pointed at this repo → build output `app`;
-   add a **KV namespace** bound as `ADA_KV`.
-2. Register one Entra app (single-tenant) with a **delegated `Files.Read`**
-   permission (user-consentable — no admin needed).
-3. Add the variables from `.dev.vars.example` to the Pages project settings.
-4. Sign in once and hit `/api/setup/graph` to connect the workbook, verify at
-   `/api/health`, then share the URL.
+`functions/` contains a complete **Cloudflare Pages + Entra ID** backend
+(tenant-locked sign-in, server-side secrets, live Jira status). It isn't used by
+the GitHub Pages deployment, but it's ready if the team later wants verified
+`@suitsupply.com` sign-in — see **[docs/CLOUDFLARE.md](docs/CLOUDFLARE.md)**.
+Still ~$0; it needs one Entra app registration.
 
-## Local development
+## Local preview
 
 ```bash
-npm i -g wrangler
-cp .dev.vars.example .dev.vars     # fill in secrets
-npx wrangler pages dev app         # http://localhost:8788
+python3 -m http.server 8788 -d app     # or any static server
+# open http://localhost:8788 — runs in demo mode
 ```
 
 ## Related
 
 - Pipeline runbook: *Ada Hub — Forms → Jira → Teams Pipeline (Runbook)* (Confluence).
 - Adaptive Cards for Teams (flag form, launcher, leaderboard, summary) live
-  alongside the pipeline; point their URL buttons at the deployed site.
+  alongside the pipeline; point their URL buttons at the live site.
