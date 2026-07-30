@@ -28,6 +28,22 @@
     --g-bar:linear-gradient(90deg,#2D2E2C,#2D2E2C);
     --g-av:linear-gradient(135deg,#2D2E2C,#2D2E2C);
   }
+  /* ===== SUITSUPPLY DARK (night mode) ===== */
+  html[data-theme="suitsupply-dark"]{
+    --bg:#131412; --surface:#1a1b19; --surface2:#222320; --surface3:#2c2d2a;
+    --border:rgba(242,242,240,0.10); --border2:rgba(242,242,240,0.22);
+    --text:#f2f2f0; --dim:#a3a39f; --faint:#6e6e6a;
+    --accent:#f2f2f0; --accent2:#a3a39f; --accent3:#ffffff;
+    --gold:#d4af5a; --silver:#a8a8a8; --bronze:#c08a52; --green:#5fbf3f; --red:#e05252;
+    --lv1:#5fbf3f; --lv2:#a3a39f; --lv3:#e8e8e6; --lv4:#ffffff;
+    --fd:'GT America','Inter',-apple-system,sans-serif; --fb:'GT America','Inter',-apple-system,sans-serif; --fm:'GT America','Inter',ui-monospace,monospace;
+    --glow:transparent; --on-accent:#131412;
+    --g-brand:linear-gradient(135deg,#f2f2f0,#f2f2f0);
+    --g-stat:linear-gradient(135deg,#f2f2f0,#f2f2f0);
+    --g-bar:linear-gradient(90deg,#f2f2f0,#a3a39f);
+    --g-av:linear-gradient(135deg,#f2f2f0,#d9d9d6);
+  }
+  html[data-theme="suitsupply-dark"].hc{--border:rgba(242,242,240,0.22); --border2:rgba(242,242,240,0.4)}
   /* ===== GEN0 — Aurora ===== */
   html[data-theme="aurora"]{
     --bg:#0a0c12; --surface:#11141d; --surface2:#181c28; --surface3:#1f2433;
@@ -387,6 +403,50 @@
   .data-table td{padding:8px 10px; border-bottom:1px solid var(--border); color:var(--text)}
   .data-wrap{max-height:300px; overflow-y:auto}
 
+  /* people pills + person panel + compare */
+  .ppill{display:flex; align-items:center; gap:8px}
+  .ppill .pav{width:20px; height:20px; border-radius:50%; background:color-mix(in srgb,var(--accent) 14%,transparent); color:var(--accent); display:flex; align-items:center; justify-content:center; font-family:var(--fd); font-weight:800; font-size:9px}
+  .hl-strip{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:22px}
+  .hl{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:13px 16px; display:flex; gap:12px; align-items:center}
+  .hl-ic{font-size:20px}
+  .hl-name{font-weight:600; font-size:13px}
+  .hl-sub{font-family:var(--fm); font-size:10px; color:var(--dim); margin-top:2px}
+  .person-stats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:14px 0}
+  .compare-grid{display:grid; grid-template-columns:1fr auto 1fr; gap:10px; align-items:center; margin-top:14px}
+  .compare-grid .cmp-val{font-family:var(--fd); font-weight:800; font-size:20px; text-align:center}
+  .compare-grid .cmp-lbl{font-family:var(--fm); font-size:10px; letter-spacing:.1em; color:var(--dim); text-transform:uppercase; text-align:center}
+  .cmp-win{color:var(--green)}
+
+  /* feedback hub: types, reactions, attachments */
+  .kind-tag{font-family:var(--fm); font-size:9px; letter-spacing:.08em; text-transform:uppercase; padding:3px 8px; border-radius:5px}
+  .kind-discussion{background:color-mix(in srgb,#38bdf8 14%,transparent); color:#2f9dd0}
+  .kind-poll{background:color-mix(in srgb,#a78bfa 16%,transparent); color:#8d6fe0}
+  .kind-proposal{background:color-mix(in srgb,#34d399 15%,transparent); color:#2f9e63}
+  .react-row{display:flex; gap:6px; margin-top:8px; flex-wrap:wrap}
+  .react{border:1px solid var(--border); background:var(--surface2); border-radius:99px; padding:3px 9px; font-size:12px; cursor:pointer; display:inline-flex; gap:5px; align-items:center; transition:border-color .15s}
+  .react:hover{border-color:var(--border2)}
+  .react.on{border-color:var(--accent); background:color-mix(in srgb,var(--accent) 10%,transparent)}
+  .react-n{font-family:var(--fm); font-size:10px; color:var(--dim)}
+  .att-chip{display:inline-flex; align-items:center; gap:6px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:6px 10px; font-size:12px; margin:6px 6px 0 0; cursor:pointer; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .att-img{max-width:220px; max-height:140px; border-radius:8px; border:1px solid var(--border); margin:8px 8px 0 0; display:block; cursor:zoom-in}
+  .poll-opt{display:flex; align-items:center; gap:10px; padding:9px 12px; border:1px solid var(--border); border-radius:var(--radius-xs); margin-bottom:7px; cursor:pointer; position:relative; overflow:hidden; transition:border-color .15s}
+  .poll-opt:hover{border-color:var(--border2)}
+  .poll-opt.voted{border-color:var(--accent)}
+  .poll-fill{position:absolute; inset:0; background:color-mix(in srgb,var(--accent) 8%,transparent); transform-origin:left; z-index:0}
+  .poll-opt>span{position:relative; z-index:1; font-size:13px}
+  .poll-pct{margin-left:auto; font-family:var(--fm); font-size:11px; color:var(--dim)}
+  .mod-row{display:flex; gap:8px; align-items:center; margin-top:10px; padding-top:10px; border-top:1px dashed var(--border)}
+  .mod-row select{width:auto; padding:6px 10px; font-size:12px}
+
+  /* night toggle + admin */
+  .night-btn{display:flex; align-items:center; gap:10px; width:100%; padding:9px 11px; margin-bottom:8px; border-radius:var(--radius-xs); border:1px solid var(--border); background:transparent; color:var(--dim); cursor:pointer; font-family:var(--fb); font-size:13px; font-weight:500; transition:background .15s,color .15s}
+  .night-btn:hover{background:var(--surface2); color:var(--text)}
+  .night-btn i{font-size:17px}
+  .uc-card{border:1px dashed var(--border2); border-radius:var(--radius-sm); padding:16px; color:var(--dim); font-size:13px; line-height:1.55; background:color-mix(in srgb,var(--surface2) 55%,transparent)}
+  .uc-card b{color:var(--text)}
+  .import-stat{display:flex; gap:18px; flex-wrap:wrap; margin:12px 0; font-size:13px; color:var(--dim)}
+  .import-stat b{color:var(--text)}
+
   .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--surface3); border:1px solid var(--border2); color:var(--text); padding:12px 20px; border-radius:var(--radius-xs); font-size:13px; z-index:200; opacity:0; transition:opacity .25s, transform .25s; pointer-events:none}
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
 
@@ -425,13 +485,8 @@
       <div class="nav-section" data-sec="main">Main <i class="ti ti-chevron-down"></i></div>
       <div class="nav-group" data-group="main">
         <div class="nav-item active" data-route="leaderboard"><i class="ti ti-trophy"></i> Leaderboard</div>
-        <div class="nav-item" data-route="impact"><i class="ti ti-sparkles"></i> Impact feed</div>
-      </div>
-      <div class="nav-section" data-sec="work">Workspace <i class="ti ti-chevron-down"></i></div>
-      <div class="nav-group" data-group="work">
-        <div class="nav-item" data-route="tickets"><i class="ti ti-ticket"></i> My tickets <span class="nav-badge" id="tkBadge">0</span></div>
+        <div class="nav-item" data-route="impact"><i class="ti ti-sparkles"></i> My impact <span class="nav-badge" id="tkBadge">0</span></div>
         <div class="nav-item" data-route="feedback"><i class="ti ti-messages"></i> Feedback hub</div>
-        <div class="nav-item" data-route="patterns"><i class="ti ti-route"></i> Patterns</div>
       </div>
       <div class="nav-section" data-sec="acct">Account <i class="ti ti-chevron-down"></i></div>
       <div class="nav-group" data-group="acct">
@@ -439,8 +494,15 @@
         <div class="nav-item" data-route="faq"><i class="ti ti-help-circle"></i> FAQ</div>
         <div class="nav-item" data-route="contacts"><i class="ti ti-mail"></i> Contacts</div>
       </div>
+      <div id="adminNav" style="display:none">
+        <div class="nav-section" data-sec="adm">Admin <i class="ti ti-chevron-down"></i></div>
+        <div class="nav-group" data-group="adm">
+          <div class="nav-item" data-route="admin"><i class="ti ti-shield-cog"></i> Admin console</div>
+        </div>
+      </div>
     </nav>
     <div class="side-footer">
+      <button class="night-btn" id="nightBtn" onclick="toggleNight()"><i class="ti ti-moon" id="nightIc"></i> <span id="nightLbl">Night mode</span></button>
       <div style="display:flex; align-items:center; gap:8px">
         <div class="user-chip" style="flex:1" data-route="profile">
           <div class="chip-avatar" id="chipAv">RP</div>
@@ -455,55 +517,121 @@
 
     <!-- LEADERBOARD -->
     <section class="view active" id="view-leaderboard">
-      <div class="page-head"><div><span class="page-eyebrow">Suitsupply CS · Ada Program</span><h1>Leaderboard</h1><div class="page-sub" id="lbSub">Loading data…</div></div></div>
+      <div class="page-head"><div><span class="page-eyebrow">Suitsupply CS · Ada Program</span><h1>Leaderboard</h1><div class="page-sub" id="lbSub">Loading data…</div></div><a class="btn" id="raiseBtn2"><i class="ti ti-flag" style="vertical-align:-2px; margin-right:5px"></i>Flag a case</a></div>
+      <div class="section-label">Top contributors</div>
+      <div class="podium" id="podium"></div>
+      <div class="hl-strip" id="hlStrip"></div>
       <div class="stats">
         <div class="stat"><span class="stat-val" id="sTotal">—</span><span class="stat-lbl">Total flags</span></div>
         <div class="stat"><span class="stat-val" id="sWeek">—</span><span class="stat-lbl">This week</span></div>
         <div class="stat"><span class="stat-val" id="sAgents">—</span><span class="stat-lbl">Contributors</span></div>
         <div class="stat"><span class="stat-val" id="sAvg">—</span><span class="stat-lbl">Avg / person</span></div>
       </div>
-      <div class="toolbar"><div class="week-nav"><button class="nav-btn" onclick="changeWeek(-1)">← prev</button><span class="week-label" id="weekLabel">This week</span><button class="nav-btn" id="nextW" onclick="changeWeek(1)" disabled>next →</button></div></div>
-      <div class="pill-row" id="ucFilter"></div>
-      <div class="section-label">Top contributors</div>
-      <div class="podium" id="podium"></div>
+      <div class="toolbar"><div class="week-nav"><button class="nav-btn" onclick="changeWeek(-1)">← prev</button><span class="week-label" id="weekLabel">This week</span><button class="nav-btn" id="nextW" onclick="changeWeek(1)" disabled>next →</button></div><button class="nav-btn" onclick="openCompare()"><i class="ti ti-arrows-left-right" style="vertical-align:-2px"></i> Compare</button></div>
+      <div class="pill-row" id="peopleFilter"></div>
       <div class="lb-list" id="lbList"></div>
     </section>
 
-    <!-- IMPACT -->
+    <!-- MY IMPACT (impact feed + my tickets, merged) -->
     <section class="view" id="view-impact">
-      <div class="page-head"><div><span class="page-eyebrow">Closing the loop</span><h1>Impact feed</h1><div class="page-sub">When your flags change Ada, you'll see it here.</div></div></div>
-      <div class="card"><div class="feed" id="feed"></div></div>
-    </section>
-
-    <!-- TICKETS -->
-    <section class="view" id="view-tickets">
-      <div class="page-head"><div><span class="page-eyebrow">Workspace</span><h1>My tickets</h1><div class="page-sub">Track every flag from raised to resolved.</div></div><a class="btn" id="raiseBtn2"><i class="ti ti-plus" style="vertical-align:-2px; margin-right:5px"></i>Raise a ticket</a></div>
+      <div class="page-head"><div><span class="page-eyebrow">Closing the loop</span><h1>My impact</h1><div class="page-sub">Your flags, their status, and what they change.</div></div><a class="btn" id="raiseBtn4"><i class="ti ti-flag" style="vertical-align:-2px; margin-right:5px"></i>Flag a case</a></div>
       <div class="stats">
-        <div class="stat"><span class="stat-val" id="tkTotal">—</span><span class="stat-lbl">All tickets</span></div>
+        <div class="stat"><span class="stat-val" id="tkTotal">—</span><span class="stat-lbl">My flags</span></div>
         <div class="stat"><span class="stat-val" id="tkOpen">—</span><span class="stat-lbl">Open</span></div>
         <div class="stat"><span class="stat-val" id="tkActed">—</span><span class="stat-lbl">Acted on</span></div>
-        <div class="stat"><span class="stat-val" id="tkDup">—</span><span class="stat-lbl">Possible dupes</span></div>
+        <div class="stat"><span class="stat-val" id="tkRank">—</span><span class="stat-lbl">Leaderboard rank</span></div>
       </div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="section-label" style="margin-bottom:10px">Milestones &amp; badges</div>
+        <div id="impMilestones"></div>
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="section-label" style="margin-bottom:10px">Quantified impact</div>
+        <div class="uc-card"><i class="ti ti-barrier-block" style="margin-right:6px"></i><b>Under construction.</b> Soon this will quantify what your flags changed — e.g. how many conversations are now gated by a fix you proposed — once the dashboard is connected to the Ada evaluator. For now, a ticket moving to <b>Acted on</b> means your flag changed Ada.</div>
+      </div>
+      <div class="section-label" style="margin:20px 0 10px">My tickets — live status</div>
       <div class="toolbar"><div class="pill-row" id="tkFilter" style="margin-bottom:0"></div><input class="search" id="tkSearch" placeholder="Search case, text…" oninput="renderTickets()"></div>
       <div id="tkList"></div>
+      <div class="section-label" style="margin:24px 0 10px">Recent activity</div>
+      <div class="card"><div class="feed" id="feed"></div></div>
     </section>
 
     <!-- FEEDBACK -->
     <section class="view" id="view-feedback">
-      <div class="page-head"><div><span class="page-eyebrow">Workspace</span><h1>Feedback hub</h1><div class="page-sub">Open discussions with the whole CS team.</div></div><button class="btn" onclick="openNewDisc()"><i class="ti ti-plus" style="vertical-align:-2px; margin-right:5px"></i>Start discussion</button></div>
+      <div class="page-head"><div><span class="page-eyebrow">Team space</span><h1>Feedback hub</h1><div class="page-sub">Discussions, polls and proposals — with the whole CS team.</div></div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap">
+          <button class="btn" onclick="openNewDisc('discussion')"><i class="ti ti-message-plus" style="vertical-align:-2px; margin-right:5px"></i>Discussion</button>
+          <button class="btn btn-ghost" onclick="openNewDisc('poll')"><i class="ti ti-chart-bar" style="vertical-align:-2px; margin-right:5px"></i>Poll</button>
+          <button class="btn btn-ghost" onclick="openNewDisc('proposal')"><i class="ti ti-bulb" style="vertical-align:-2px; margin-right:5px"></i>Proposal</button>
+        </div>
+      </div>
+      <div class="pill-row" id="dcKindFilter" style="margin-bottom:8px"></div>
       <div class="pill-row" id="dcFilter"></div>
       <div id="dcList"></div>
+      <div class="hint" style="margin-top:14px"><i class="ti ti-info-circle" style="vertical-align:-2px"></i> Discussions currently live on this device (shared team threads arrive with the hosted backend upgrade). Attachments are capped at 300 KB each.</div>
     </section>
 
-    <!-- PATTERNS -->
-    <section class="view" id="view-patterns">
-      <div class="page-head"><div><span class="page-eyebrow">Workspace · Analytics</span><h1>Patterns</h1><div class="page-sub">Turn recurring issues into Ada improvements.</div></div></div>
+    <!-- ADMIN CONSOLE -->
+    <section class="view" id="view-admin">
+      <div class="page-head"><div><span class="page-eyebrow">Restricted</span><h1>Admin console</h1><div class="page-sub">Program controls, data import and analytics. Visible to admins only.</div></div></div>
+
       <div class="card">
-        <div class="section-label">Flags by use case</div>
-        <div class="pat-bars" id="patBars"></div>
+        <div class="card-title">Historical import — Virtual Assistant "Report an Issue"</div>
+        <div class="card-desc" style="margin-bottom:6px">The pre-launch submissions (old Microsoft Form), bundled from <b>Virtual Assistant - Report an Issue 3.xlsx</b> — from Savanah's first real submission (18 Jun 2026) onward. Test rows are already excluded.</div>
+        <div class="import-stat" id="histStats">Loading batch…</div>
+        <div class="btn-row">
+          <button class="btn" onclick="previewHistory()"><i class="ti ti-eye" style="vertical-align:-2px; margin-right:5px"></i>Preview batch</button>
+          <button class="btn" id="histMergeBtn" onclick="toggleHistory()">Merge into dashboard</button>
+          <button class="btn btn-ghost" onclick="downloadHistoryCSV()"><i class="ti ti-download" style="vertical-align:-2px; margin-right:5px"></i>CSV for workbook</button>
+        </div>
+        <div class="hint" style="margin-top:10px">“Merge into dashboard” blends the batch into the leaderboard, profiles, scoring and badges on this device (deduped against live data). To make it permanent for <b>everyone</b>, paste the CSV rows into the live <b>Ada Flags form.xlsx</b> table — the data feed then serves them to the whole team, and you can switch the local merge off. Manual workbook rows do <b>not</b> trigger the Teams thank-you / Jira flow (that only fires on real form submissions) — Jira tickets for these can be created separately in bulk.</div>
       </div>
-      <div class="section-label" style="margin:22px 0 12px">Identified patterns</div>
-      <div id="patCards"></div>
+
+      <div class="card">
+        <div class="card-title">Data hygiene</div>
+        <div class="card-desc" style="margin-bottom:12px">Filter obvious test submissions out of every view. This only hides them in the dashboard — delete the rows in the workbook to remove them at the source.</div>
+        <div class="toggle-row"><div><div class="toggle-info">Hide test submissions</div><div class="toggle-sub">Hides records whose description starts with “test” / contains “testing case”.</div></div><div class="switch" id="swTests" onclick="toggleTests(this)"></div></div>
+        <div class="import-stat" id="testStats"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Admins</div>
+        <div class="card-desc" style="margin-bottom:12px">Who can see this console. Ray is always an admin; add colleagues by Suitsupply email.</div>
+        <div id="adminList" style="margin-bottom:10px"></div>
+        <div class="note-add"><input type="text" id="newAdmin" placeholder="name@suitsupply.com"><button class="btn" onclick="addAdmin()">Add admin</button></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Program settings</div>
+        <div class="card-desc" style="margin-bottom:16px">Level thresholds — flags required to reach each level. Updates the leaderboard, profiles and badges instantly.</div>
+        <div class="row4">
+          <div><label>Scout</label><input type="number" id="lvl1" value="1" min="1"></div>
+          <div><label>Spotter</label><input type="number" id="lvl2" value="3" min="1"></div>
+          <div><label>Contributor</label><input type="number" id="lvl3" value="10" min="1"></div>
+          <div><label>Champion</label><input type="number" id="lvl4" value="25" min="1"></div>
+        </div>
+        <div class="btn-row"><button class="btn" onclick="saveLevels()">Save thresholds</button></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Patterns <span class="kind-tag kind-poll" style="margin-left:8px">moved from main nav</span></div>
+        <div class="card-desc" style="margin-bottom:12px">Use-case analytics. The current form doesn't collect a use case, so this stays here until the evaluator-tool connection lands.</div>
+        <div class="pat-bars" id="patBars"></div>
+        <div class="section-label" style="margin:18px 0 10px">Identified patterns</div>
+        <div id="patCards"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Data</div>
+        <div class="toolbar" style="margin:10px 0 12px"><span style="font-family:var(--fm); font-size:12px; color:var(--dim)" id="dataCount">—</span><button class="nav-btn" onclick="renderData();exportCSV()"><i class="ti ti-file-export" style="vertical-align:-2px; margin-right:4px"></i>Export CSV</button></div>
+        <div class="data-wrap"><table class="data-table" id="dataTable"></table></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Secure channel</div>
+        <div class="card-desc" style="margin-bottom:12px">End-to-end encrypted, self-destructing chat between two admins.</div>
+        <button class="btn btn-ghost" onclick="document.getElementById('gateOverlay').classList.add('show')"><i class="ti ti-shield-lock" style="vertical-align:-2px; margin-right:5px"></i>Open secure channel</button>
+      </div>
     </section>
 
     <!-- PROFILE (accessed via chip) -->
@@ -575,18 +703,6 @@
         <div class="card-title">Privacy</div>
         <div class="card-desc" style="margin-bottom:8px">Control your visibility to teammates.</div>
         <div id="tog-privacy"></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Level thresholds</div>
-        <div class="card-desc" style="margin-bottom:16px">Flags required to reach each level. Updates the leaderboard and profiles instantly.</div>
-        <div class="row4">
-          <div><label>Scout</label><input type="number" id="lvl1" value="1" min="1"></div>
-          <div><label>Spotter</label><input type="number" id="lvl2" value="3" min="1"></div>
-          <div><label>Contributor</label><input type="number" id="lvl3" value="10" min="1"></div>
-          <div><label>Champion</label><input type="number" id="lvl4" value="25" min="1"></div>
-        </div>
-        <div class="btn-row"><button class="btn" onclick="saveLevels()">Save thresholds</button></div>
       </div>
 
       <div class="card">
@@ -687,8 +803,7 @@
 <!-- ADMIN PANEL -->
 <div class="overlay" id="adminOverlay">
   <div class="modal wide">
-    <div class="modal-head"><div class="modal-ic" style="background:color-mix(in srgb,var(--accent) 14%,transparent); color:var(--accent)"><i class="ti ti-adjustments"></i></div><div class="modal-title">Admin console</div><button class="modal-x" onclick="closeAdmin()" aria-label="Close">&times;</button></div>
-    <div class="admin-tabs"><div class="admin-tab active" data-atab="burn" onclick="switchAdminTab('burn')">Secure channel</div><div class="admin-tab" data-atab="data" onclick="switchAdminTab('data')">Data</div></div>
+    <div class="modal-head"><div class="modal-ic" style="background:color-mix(in srgb,var(--accent) 14%,transparent); color:var(--accent)"><i class="ti ti-shield-lock"></i></div><div class="modal-title">Secure channel</div><button class="modal-x" onclick="closeAdmin()" aria-label="Close">&times;</button></div>
     <div id="atab-burn">
       <div class="burn-bar"><i class="ti ti-flame" style="color:var(--red); font-size:18px"></i><span class="burn-timer" id="burnTimer">15:00</span><span class="burn-status" id="burnStatus">encrypted · in-memory only</span>
         <div style="margin-left:auto; display:flex; gap:8px"><button class="nav-btn" onclick="exportBurn()" title="Export encrypted transcript"><i class="ti ti-download" style="vertical-align:-2px"></i></button><button class="nav-btn" onclick="document.getElementById('importFile').click()" title="Import encrypted transcript"><i class="ti ti-upload" style="vertical-align:-2px"></i></button><button class="nav-btn" style="color:var(--red); border-color:color-mix(in srgb,var(--red) 30%,transparent)" onclick="burnNow()">Burn now</button></div>
@@ -697,10 +812,24 @@
       <div class="burn-msgs" id="burnMsgs"><div class="empty">Channel open. Messages appear here and vanish on burn.</div></div>
       <div class="burn-input-row"><button class="icon-btn" onclick="document.getElementById('attachFile').click()" title="Attach file" aria-label="Attach"><i class="ti ti-paperclip"></i></button><input type="file" id="attachFile" style="display:none" onchange="attachBurn(event)"><textarea id="burnInput" rows="1" placeholder="Type a secure message…" onkeydown="burnKey(event)"></textarea><button class="icon-btn" style="background:var(--accent); color:var(--on-accent); border-color:var(--accent)" onclick="sendBurn()" aria-label="Send"><i class="ti ti-send"></i></button></div>
     </div>
-    <div id="atab-data" style="display:none">
-      <div class="toolbar" style="margin-bottom:14px"><span style="font-family:var(--fm); font-size:12px; color:var(--dim)" id="dataCount">—</span><button class="nav-btn" onclick="exportCSV()"><i class="ti ti-file-export" style="vertical-align:-2px; margin-right:4px"></i>Export CSV</button></div>
-      <div class="data-wrap"><table class="data-table" id="dataTable"></table></div>
-    </div>
+  </div>
+</div>
+
+<!-- PERSON PANEL -->
+<div class="overlay" id="personOverlay">
+  <div class="modal wide" id="personModal"></div>
+</div>
+
+<!-- COMPARE -->
+<div class="overlay" id="compareOverlay">
+  <div class="modal wide" id="compareModal"></div>
+</div>
+
+<!-- HISTORY PREVIEW -->
+<div class="overlay" id="histOverlay">
+  <div class="modal wide">
+    <div class="modal-head"><div class="modal-ic" style="background:color-mix(in srgb,var(--accent) 14%,transparent); color:var(--accent)"><i class="ti ti-history"></i></div><div class="modal-title">Historical batch preview</div><button class="modal-x" onclick="document.getElementById('histOverlay').classList.remove('show')" aria-label="Close">&times;</button></div>
+    <div class="data-wrap" style="max-height:420px"><table class="data-table" id="histTable"></table></div>
   </div>
 </div>
 
@@ -721,11 +850,15 @@
 <!-- NEW DISCUSSION -->
 <div class="overlay" id="discOverlay">
   <div class="modal">
-    <div class="modal-head"><div class="modal-ic" style="background:color-mix(in srgb,var(--accent) 14%,transparent); color:var(--accent)"><i class="ti ti-message-plus"></i></div><div class="modal-title">Start a discussion</div><button class="modal-x" onclick="document.getElementById('discOverlay').classList.remove('show')" aria-label="Close">&times;</button></div>
+    <div class="modal-head"><div class="modal-ic" style="background:color-mix(in srgb,var(--accent) 14%,transparent); color:var(--accent)"><i class="ti ti-message-plus" id="ndIcon"></i></div><div class="modal-title" id="ndHead">Start a discussion</div><button class="modal-x" onclick="document.getElementById('discOverlay').classList.remove('show')" aria-label="Close">&times;</button></div>
     <label>Title</label><input type="text" id="ndTitle" placeholder="e.g. WISMO ETA keeps coming back wrong" style="margin-bottom:12px">
-    <label>Related use case</label><select id="ndUC" style="margin-bottom:12px"></select>
-    <label>Details</label><textarea id="ndBody" rows="4" placeholder="Describe the issue or idea…"></textarea>
-    <div class="btn-row"><button class="btn" onclick="createDisc()">Post discussion</button></div>
+    <div id="ndPollWrap" style="display:none; margin-bottom:12px">
+      <label>Poll options</label><div class="hint">One per line, 2–6 options.</div>
+      <textarea id="ndPollOpts" rows="3" placeholder="Yes, ship it&#10;Needs more testing&#10;No"></textarea>
+    </div>
+    <label id="ndBodyLbl">Details</label><textarea id="ndBody" rows="4" placeholder="Describe the issue or idea…"></textarea>
+    <div style="margin-top:10px"><button class="btn btn-ghost" onclick="document.getElementById('ndFile').click()" style="font-size:12px; padding:7px 12px"><i class="ti ti-paperclip" style="vertical-align:-2px; margin-right:4px"></i>Attach file</button><input type="file" id="ndFile" style="display:none" multiple onchange="attachToDraft(event)"><span id="ndAttList" style="font-size:12px; color:var(--dim); margin-left:8px"></span></div>
+    <div class="btn-row"><button class="btn" onclick="createDisc()" id="ndSubmit">Post</button></div>
   </div>
 </div>
 
@@ -739,7 +872,12 @@ set(k,v){mem[k]=v;try{if(ok)localStorage.setItem('adahub_'+k,JSON.stringify(v));
 del(k){delete mem[k];try{if(ok)localStorage.removeItem('adahub_'+k);}catch(e){}}}})();
 
 const TEAMS_URL='https://teams.microsoft.com/l/channel/19%3AacV8nrFb2DGW8j9N23CFFZAcoItGQVXeTmokmlyEPps1%40thread.tacv2/Self-Service%20Troubleshooting?groupId=12fadb7e-2e4c-4bd0-b928-31630e31cad1&tenantId=fbe43f29-18b2-46ca-a741-bcc4672ba19c&ngc=true&allowXTenantAccess=true';
-function ticketUrl(){return (Store.get('formUrl','')||'').trim()||TEAMS_URL;}
+/* The Microsoft Form wired to the intake flow — every "Flag a case" button opens this. */
+const DEFAULT_FORM_URL='https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=KT_k-7IYykanQbzEZyuhnBYVObjUAkZHpQPgqKY2JcVUMzU0WkNUQUZRMkZEOFZWMzhMV0w4S1JOVC4u';
+function ticketUrl(){return (Store.get('formUrl','')||'').trim()||DEFAULT_FORM_URL;}
+const BASE_ADMINS=['rpezzullo@suitsupply.com'];
+function adminEmails(){return [...new Set([...BASE_ADMINS,...Store.get('extraAdmins',[])])];}
+function isAdmin(){return adminEmails().includes(myEmail());}
 
 /* ---------- identity (Entra ID SSO via the Cloudflare backend) ----------
    /api/me returns the signed-in Suitsupply user (from the session cookie set
@@ -802,7 +940,7 @@ async function saveSetup(){
   Store.set('name',name);if(email)Store.set('email',email);Store.set('flowUrl',flow);Store.set('setupDone',true);
   document.getElementById('setupOverlay').classList.remove('show');
   const nameInput=document.getElementById('setName');if(nameInput)nameInput.value=name;
-  await loadData();TICKETS=[];enrichTickets();renderUC();renderLB();syncChip();
+  await loadData();TICKETS=[];enrichTickets();renderPeople();renderLB();syncChip();syncNav();
   toast(LIVE?'Connected — live data loaded':'Saved — running in demo mode');
 }
 const USE_CASES=['WISMO','Returns & Refunds','Product related','Store related','Complaint','BOPIS','Other'];
@@ -812,6 +950,7 @@ const STATUSES=['New','In Review','Acted On','Closed','Duplicate'];
 const STATUS_CLS={'New':'st-new','In Review':'st-review','Acted On':'st-acted','Closed':'st-closed','Duplicate':'st-dup'};
 const THEMES=[
   {id:'suitsupply',name:'Suitsupply',meta:'SS26 · Default',group:'brand',sw:['#2D2E2C','#E8E8E8','#FFFFFF']},
+  {id:'suitsupply-dark',name:'Suitsupply Night',meta:'SS26 · Dark',group:'brand',sw:['#f2f2f0','#2c2d2a','#131412']},
   {id:'aurora',name:'Aurora',meta:'Cyan · Indigo',group:'gen0',sw:['#22d3ee','#818cf8','#0a0c12']},
   {id:'nebula',name:'Nebula',meta:'Violet · Magenta',group:'gen0',sw:['#7c5cfc','#c084fc','#0a0a0f']},
   {id:'carbon',name:'Carbon',meta:'Lime · Gold',group:'gen0',sw:['#a3e635','#facc15','#0c0d0d']},
@@ -826,7 +965,28 @@ const SAMPLE_DESC={
   'Other':['Edge case Ada could not handle','Ada response was off-topic','Language switch confused Ada','Ada gave a generic non-answer']
 };
 
-let DATA=[], TICKETS=[], weekOffset=0, activeUC=null, tkStatus='all', dcFilter='all', LIVE=false;
+let RAW=[], DATA=[], TICKETS=[], HISTORY=null, weekOffset=0, activePerson=null, tkStatus='all', dcFilter='all', dcKind='all', LIVE=false;
+
+/* Obvious test submissions (hidden by default; admin-controlled). */
+function isTestRow(r){const d=(r.IssueDescription||'').trim().toLowerCase();const c=(r.CaseNumber||'').trim().toLowerCase();
+  return /^test(ing)?\b/.test(d)||d.includes('testing case')||d==='ray test'||d==='bot sai x'||c==='test'||c==='c-0001'||d==='tw'||d==='rw';}
+function dedupeKey(r){return (r.SubmitterEmail||r.SubmittedBy||'')+'|'+(r.SubmittedAt||'').slice(0,10)+'|'+(r.IssueDescription||'').toLowerCase().slice(0,24);}
+/* Rebuild the working dataset from RAW + optional history merge + test filter. */
+function applyData(){
+  let rows=[...RAW];
+  if(Store.get('includeHistory',false)&&HISTORY&&HISTORY.records){
+    const seen=new Set(rows.map(dedupeKey));
+    HISTORY.records.forEach(h=>{const n=normalizeRecords([h])[0];if(n&&!seen.has(dedupeKey(n)))rows.push(n);});
+  }
+  if(Store.get('hideTests',true))rows=rows.filter(r=>!isTestRow(r));
+  DATA=rows;
+}
+async function loadHistory(){
+  if(HISTORY!==null)return HISTORY;
+  try{const res=await fetch('data/history.json');HISTORY=res.ok?await res.json():{records:[]};}
+  catch(e){HISTORY={records:[]};}
+  return HISTORY;
+}
 
 function levels(){return Store.get('levels',[1,3,10,25]);}
 function me(){return Store.get('name','Ray Pezzullo');}
@@ -855,61 +1015,139 @@ document.querySelectorAll('[data-route]').forEach(el=>{el.addEventListener('clic
   document.querySelector('.sidebar').classList.remove('open');
   document.querySelector('.main').scrollTop=0;
   if(r==='profile')renderProfile();
-  if(r==='impact')renderFeed();
-  if(r==='tickets')renderTickets();
+  if(r==='impact')renderImpact();
   if(r==='feedback')renderDisc();
-  if(r==='patterns')renderPatterns();
+  if(r==='admin')renderAdmin();
 });});
 document.querySelectorAll('.nav-section').forEach(s=>s.addEventListener('click',()=>{
   s.classList.toggle('collapsed');
   const g=document.querySelector(`.nav-group[data-group="${s.dataset.sec}"]`);
   if(g){if(g.classList.contains('collapsed')){g.classList.remove('collapsed');g.style.maxHeight=g.scrollHeight+'px';}else{g.style.maxHeight=g.scrollHeight+'px';requestAnimationFrame(()=>{g.classList.add('collapsed');});}}
 }));
-[ 'raiseBtn','raiseBtn2','raiseBtn3'].forEach(id=>{const el=document.getElementById(id);if(el){el.style.cursor='pointer';el.addEventListener('click',()=>openLink(ticketUrl()));}});
+/* Every "Flag a case" button opens the Microsoft Form wired to the intake flow. */
+['raiseBtn','raiseBtn2','raiseBtn4'].forEach(id=>{const el=document.getElementById(id);if(el){el.style.cursor='pointer';el.addEventListener('click',()=>openLink(ticketUrl()));}});
+/* The contacts card's channel button keeps pointing at the Teams channel. */
+const rb3=document.getElementById('raiseBtn3');if(rb3){rb3.style.cursor='pointer';rb3.addEventListener('click',()=>openLink(TEAMS_URL));}
 
 /* ---------- leaderboard ---------- */
-function renderUC(){const el=document.getElementById('ucFilter');const c={};DATA.forEach(r=>c[r.UseCase]=(c[r.UseCase]||0)+1);
-  el.innerHTML=`<div class="pill ${!activeUC?'active':''}" onclick="setUC(null)"><span>All</span><span class="pill-n">${DATA.length}</span></div>`+USE_CASES.filter(u=>c[u]).map(u=>`<div class="pill ${activeUC===u?'active':''}" onclick="setUC('${u.replace(/'/g,"\\'")}')"><span>${u}</span><span class="pill-n">${c[u]}</span></div>`).join('');}
-function setUC(u){activeUC=u;renderLB();}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function rowsOf(name){return DATA.filter(r=>r.SubmittedBy===name);}
+function renderPeople(){const el=document.getElementById('peopleFilter');const ranked=agg(DATA);
+  el.innerHTML=`<div class="pill ${!activePerson?'active':''}" onclick="setPerson(null)"><span>Everyone</span><span class="pill-n">${DATA.length}</span></div>`+
+    ranked.map(a=>`<div class="pill ${activePerson===a.name?'active':''}" onclick="openPerson('${esc(a.name).replace(/'/g,"\\'")}')"><span class="ppill"><span class="pav">${initials(a.name)}</span>${esc(a.name.split(' ')[0])}</span><span class="pill-n">${a.count}</span></div>`).join('');}
+function setPerson(n){activePerson=n;renderLB();renderPeople();}
 function changeWeek(d){weekOffset+=d;document.getElementById('nextW').disabled=weekOffset>=0;document.getElementById('weekLabel').textContent=weekLabel(weekOffset);renderLB();}
+function renderHighlights(){
+  const host=document.getElementById('hlStrip');const ranked=agg(DATA);
+  if(!ranked.length){host.innerHTML='';return;}
+  const byStreak=[...ranked].map(a=>({n:a.name,s:streakOf(rowsOf(a.name))})).sort((a,b)=>b.s-a.s)[0];
+  const week=agg(DATA.filter(r=>inWeek(r,0)))[0];
+  const newest=[...DATA].sort((a,b)=>new Date(a.SubmittedAt)-new Date(b.SubmittedAt)).reduce((m,r)=>{m[r.SubmittedBy]=r.SubmittedAt;return m;},{});
+  const newestName=Object.entries(newest).sort((a,b)=>new Date(b[1])-new Date(a[1]))[0];
+  host.innerHTML=[
+    byStreak&&byStreak.s>0?`<div class="hl"><span class="hl-ic">🔥</span><div><div class="hl-name">${esc(byStreak.n.split(' ')[0])}</div><div class="hl-sub">Longest streak · ${byStreak.s} day${byStreak.s>1?'s':''}</div></div></div>`:'',
+    week?`<div class="hl"><span class="hl-ic">🚀</span><div><div class="hl-name">${esc(week.name.split(' ')[0])}</div><div class="hl-sub">Most flags this week · ${week.count}</div></div></div>`:'',
+    newestName?`<div class="hl"><span class="hl-ic">🆕</span><div><div class="hl-name">${esc(newestName[0].split(' ')[0])}</div><div class="hl-sub">Latest contribution · ${new Date(newestName[1]).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</div></div></div>`:''
+  ].filter(Boolean).join('');
+}
 function renderLB(){
-  let rows=DATA.filter(r=>inWeek(r,weekOffset));if(activeUC)rows=rows.filter(r=>r.UseCase===activeUC);
+  let rows=DATA.filter(r=>inWeek(r,weekOffset));if(activePerson)rows=rows.filter(r=>r.SubmittedBy===activePerson);
   const ranked=agg(rows),max=ranked[0]?.count||1,allRanked=agg(DATA);
   document.getElementById('sTotal').textContent=DATA.length;
-  document.getElementById('sWeek').textContent=rows.length;
+  document.getElementById('sWeek').textContent=DATA.filter(r=>inWeek(r,0)).length;
   document.getElementById('sAgents').textContent=allRanked.length;
   document.getElementById('sAvg').textContent=allRanked.length?(DATA.length/allRanked.length).toFixed(1):'0';
+  renderHighlights();
   const pod=document.getElementById('podium');
   if(!ranked.length){pod.innerHTML='<div class="empty" style="grid-column:1/-1">No flags this period</div>';document.getElementById('lbList').innerHTML='';return;}
   const order=[ranked[1],ranked[0],ranked[2]],cls=['second','first','third'],rk=[2,1,3];
   pod.innerHTML=order.map((a,i)=>{if(!a)return `<div class="pod ${cls[i]}" style="min-height:120px"></div>`;const lv=levelOf(countAll(a.name));
-    return `<div class="pod ${cls[i]}">${cls[i]==='first'?'<div class="crown">👑</div>':''}<div class="pod-rank">#${rk[i]}</div><div class="pod-av">${initials(a.name)}</div><div class="pod-name">${a.name.split(' ')[0]}</div><div class="pod-count">${a.count}</div><div class="pod-unit">flags</div>${lv>=0?`<div><span class="lvl-badge ${LEVEL_CLS[lv]}">${LEVEL_NAMES[lv]}</span></div>`:''}</div>`;}).join('');
+    return `<div class="pod ${cls[i]}" style="cursor:pointer" onclick="openPerson('${esc(a.name).replace(/'/g,"\\'")}')">${cls[i]==='first'?'<div class="crown">👑</div>':''}<div class="pod-rank">#${rk[i]}</div><div class="pod-av">${initials(a.name)}</div><div class="pod-name">${esc(a.name.split(' ')[0])}</div><div class="pod-count">${a.count}</div><div class="pod-unit">flags</div>${lv>=0?`<div><span class="lvl-badge ${LEVEL_CLS[lv]}">${LEVEL_NAMES[lv]}</span></div>`:''}</div>`;}).join('');
   document.getElementById('lbList').innerHTML=ranked.slice(3).map((a,i)=>{const lv=levelOf(countAll(a.name)),pct=Math.round(a.count/max*100);
-    return `<div class="lb-row"><div class="lb-rank">${i+4}</div><div class="lb-av">${initials(a.name)}</div><div><div class="lb-name">${a.name}</div>${lv>=0?`<span class="lvl-badge ${LEVEL_CLS[lv]}" style="margin-top:4px">${LEVEL_NAMES[lv]}</span>`:''}</div><div><div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div></div><div class="lb-count">${a.count}</div></div>`;}).join('');
+    return `<div class="lb-row" style="cursor:pointer" onclick="openPerson('${esc(a.name).replace(/'/g,"\\'")}')"><div class="lb-rank">${i+4}</div><div class="lb-av">${initials(a.name)}</div><div><div class="lb-name">${esc(a.name)}</div>${lv>=0?`<span class="lvl-badge ${LEVEL_CLS[lv]}" style="margin-top:4px">${LEVEL_NAMES[lv]}</span>`:''}</div><div><div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div></div><div class="lb-count">${a.count}</div></div>`;}).join('');
+}
+/* --- person panel + compare --- */
+function personStats(name){const mine=rowsOf(name);const rank=agg(DATA).findIndex(a=>a.name===name)+1;
+  return {name,total:mine.length,week:mine.filter(r=>inWeek(r,0)).length,rank,streak:streakOf(mine),best:bestStreakOf(mine),lv:levelOf(mine.length),badges:BADGES.filter(b=>b.test(mine)).length,rows:mine};}
+function openPerson(name){
+  const p=personStats(name);
+  const recent=[...p.rows].sort((a,b)=>new Date(b.SubmittedAt)-new Date(a.SubmittedAt)).slice(0,10);
+  document.getElementById('personModal').innerHTML=`
+    <div class="modal-head"><div class="chip-avatar" style="width:38px;height:38px">${initials(name)}</div><div><div class="modal-title">${esc(name)}</div><div class="chip-meta">${p.lv>=0?`Level ${p.lv+1} · ${LEVEL_NAMES[p.lv]}`:'Unranked'} · #${p.rank||'—'} all-time</div></div><button class="modal-x" onclick="document.getElementById('personOverlay').classList.remove('show')" aria-label="Close">&times;</button></div>
+    <div class="person-stats">
+      <div class="stat"><span class="stat-val">${p.total}</span><span class="stat-lbl">Total flags</span></div>
+      <div class="stat"><span class="stat-val">${p.week}</span><span class="stat-lbl">This week</span></div>
+      <div class="stat"><span class="stat-val">${p.streak}</span><span class="stat-lbl">Streak</span></div>
+      <div class="stat"><span class="stat-val">${p.badges}</span><span class="stat-lbl">Badges</span></div>
+    </div>
+    <div class="section-label">Recent contributions</div>
+    <div class="mini-list">${recent.map(r=>`<div class="mini-row"><span class="mini-uc">${esc(r.CaseNumber||'—')}</span><span style="color:var(--dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${esc(r.IssueDescription||'')}</span><span class="mini-date">${new Date(r.SubmittedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</span></div>`).join('')||'<div class="empty">No flags yet</div>'}</div>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="openCompare('${esc(name).replace(/'/g,"\\'")}')"><i class="ti ti-arrows-left-right" style="vertical-align:-2px; margin-right:5px"></i>Compare with…</button></div>`;
+  document.getElementById('personOverlay').classList.add('show');
+}
+function openCompare(pre){
+  document.getElementById('personOverlay').classList.remove('show');
+  const names=agg(DATA).map(a=>a.name);
+  if(names.length<2){toast('Need at least two contributors');return;}
+  const a=pre||names[0];
+  document.getElementById('compareModal').innerHTML=`
+    <div class="modal-head"><div class="modal-ic" style="background:color-mix(in srgb,var(--accent) 14%,transparent); color:var(--accent)"><i class="ti ti-arrows-left-right"></i></div><div class="modal-title">Head to head</div><button class="modal-x" onclick="document.getElementById('compareOverlay').classList.remove('show')" aria-label="Close">&times;</button></div>
+    <div class="row2"><div><label>Contributor A</label><select id="cmpA" onchange="renderCompare()">${names.map(n=>`<option ${n===a?'selected':''}>${esc(n)}</option>`).join('')}</select></div>
+    <div><label>Contributor B</label><select id="cmpB" onchange="renderCompare()">${names.map((n,i)=>`<option ${(n!==a&&(i===0||names[0]===a?i===1:i===0))?'selected':''}>${esc(n)}</option>`).join('')}</select></div></div>
+    <div id="cmpBody"></div>`;
+  document.getElementById('compareOverlay').classList.add('show');
+  renderCompare();
+}
+function renderCompare(){
+  const A=personStats(document.getElementById('cmpA').value),B=personStats(document.getElementById('cmpB').value);
+  const row=(lbl,a,b,lowWins)=>{const aw=lowWins?a<b:a>b, bw=lowWins?b<a:b>a;
+    return `<div class="cmp-val ${aw?'cmp-win':''}">${a}</div><div class="cmp-lbl">${lbl}</div><div class="cmp-val ${bw?'cmp-win':''}">${b}</div>`;};
+  document.getElementById('cmpBody').innerHTML=`<div class="compare-grid">
+    ${row('Total flags',A.total,B.total)}${row('This week',A.week,B.week)}${row('Current streak',A.streak,B.streak)}${row('Best streak',A.best,B.best)}${row('Badges',A.badges,B.badges)}
+    <div class="cmp-val ${(A.rank||1e9)<(B.rank||1e9)?'cmp-win':''}">#${A.rank||'—'}</div><div class="cmp-lbl">All-time rank</div><div class="cmp-val ${(B.rank||1e9)<(A.rank||1e9)?'cmp-win':''}">#${B.rank||'—'}</div></div>
+    <div class="hint" style="text-align:center; margin-top:10px">Green = leading.</div>`;
 }
 
 /* ---------- tickets ---------- */
 function enrichTickets(){
   const ov=Store.get('tkOverrides',{});
   TICKETS=DATA.map((r,i)=>{const o=ov[r.CaseNumber]||{};const age=(Date.now()-new Date(r.SubmittedAt))/86400000;
-    const st=o.status||(age>18?'Closed':age>10?'Acted On':age>4?'In Review':'New');
+    // Priority: manual override > live status from the feed (Jira) > age estimate.
+    const st=o.status||r.Status||(age>18?'Closed':age>10?'Acted On':age>4?'In Review':'New');
     return {...r,status:st,notes:o.notes||[],_i:i};});
   const counts={};TICKETS.forEach(t=>{t._dk=(t.UseCase+'|'+(t.IssueDescription||'').toLowerCase().slice(0,22)).trim();counts[t._dk]=(counts[t._dk]||0)+1;});
   TICKETS.forEach(t=>t._dup=counts[t._dk]>1);
-  document.getElementById('tkBadge').textContent=TICKETS.filter(t=>t.SubmittedBy===me()&&(t.status==='New'||t.status==='In Review')).length;
+  document.getElementById('tkBadge').textContent=TICKETS.filter(t=>isMine(t)&&(t.status==='New'||t.status==='In Review')).length;
 }
-function renderTkFilter(){const c={all:TICKETS.length};STATUSES.forEach(s=>c[s]=TICKETS.filter(t=>t.status===s).length);
-  document.getElementById('tkFilter').innerHTML=`<div class="pill ${tkStatus==='all'?'active':''}" onclick="setTkStatus('all')"><span>All</span><span class="pill-n">${c.all}</span></div>`+STATUSES.map(s=>`<div class="pill ${tkStatus===s?'active':''}" onclick="setTkStatus('${s}')"><span>${s}</span><span class="pill-n">${c[s]}</span></div>`).join('');}
+function myTickets(){return TICKETS.filter(isMine);}
+function renderTkFilter(){const m=myTickets();const c={all:m.length};STATUSES.forEach(s=>c[s]=m.filter(t=>t.status===s).length);
+  document.getElementById('tkFilter').innerHTML=`<div class="pill ${tkStatus==='all'?'active':''}" onclick="setTkStatus('all')"><span>All</span><span class="pill-n">${c.all}</span></div>`+STATUSES.filter(s=>c[s]).map(s=>`<div class="pill ${tkStatus===s?'active':''}" onclick="setTkStatus('${s}')"><span>${s}</span><span class="pill-n">${c[s]}</span></div>`).join('');}
 function setTkStatus(s){tkStatus=s;renderTickets();}
+function renderImpact(){
+  if(!TICKETS.length)enrichTickets();
+  const p=personStats(me());
+  document.getElementById('tkRank').textContent=p.rank>0?'#'+p.rank:'—';
+  const L=levels();const nextT=p.lv<3?L[p.lv+1]:null;
+  const earned=BADGES.filter(b=>b.test(p.rows));
+  document.getElementById('impMilestones').innerHTML=`
+    <div style="display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-bottom:10px">
+      <span class="lvl-badge ${p.lv>=0?LEVEL_CLS[p.lv]:'lv0b'}" style="font-size:11px; padding:5px 12px">${p.lv>=0?`Level ${p.lv+1} · ${LEVEL_NAMES[p.lv]}`:'Unranked — flag your first case'}</span>
+      ${nextT?`<span style="font-size:12px; color:var(--dim)">${nextT-p.total} more to <b style="color:var(--text)">${LEVEL_NAMES[Math.min(3,p.lv+1)]}</b></span>`:p.lv>=3?'<span style="font-size:12px; color:var(--dim)">Max level reached 👑</span>':''}
+      <span style="font-size:12px; color:var(--dim); margin-left:auto">🔥 ${p.streak}-day streak</span>
+    </div>
+    <div class="bar-bg" style="margin-bottom:14px"><div class="bar-fill" style="width:${p.lv>=3?100:Math.min(100,Math.round((p.total-(p.lv>=0?L[p.lv]:0))/Math.max(1,(nextT||1)-(p.lv>=0?L[p.lv]:0))*100))}%"></div></div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap">${earned.length?earned.map(b=>`<span class="react on" title="${b.req}" style="cursor:default"><i class="ti ${b.ic}"></i> ${b.name}</span>`).join(''):'<span style="font-size:12px; color:var(--dim)">No badges yet — your first flag earns one.</span>'}</div>`;
+  renderTickets();renderFeed();
+}
 function renderTickets(){
   if(!TICKETS.length)enrichTickets();
   renderTkFilter();
   const q=(document.getElementById('tkSearch')?.value||'').toLowerCase();
-  document.getElementById('tkTotal').textContent=TICKETS.length;
-  document.getElementById('tkOpen').textContent=TICKETS.filter(t=>t.status==='New'||t.status==='In Review').length;
-  document.getElementById('tkActed').textContent=TICKETS.filter(t=>t.status==='Acted On').length;
-  document.getElementById('tkDup').textContent=TICKETS.filter(t=>t._dup).length;
-  let list=[...TICKETS].sort((a,b)=>new Date(b.SubmittedAt)-new Date(a.SubmittedAt));
+  const m=myTickets();
+  document.getElementById('tkTotal').textContent=m.length;
+  document.getElementById('tkOpen').textContent=m.filter(t=>t.status==='New'||t.status==='In Review').length;
+  document.getElementById('tkActed').textContent=m.filter(t=>t.status==='Acted On').length;
+  let list=[...m].sort((a,b)=>new Date(b.SubmittedAt)-new Date(a.SubmittedAt));
   if(tkStatus!=='all')list=list.filter(t=>t.status===tkStatus);
   if(q)list=list.filter(t=>(t.CaseNumber||'').toLowerCase().includes(q)||(t.IssueDescription||'').toLowerCase().includes(q)||(t.UseCase||'').toLowerCase().includes(q));
   const host=document.getElementById('tkList');
@@ -937,44 +1175,98 @@ function addNote(i){const t=TICKETS.find(x=>x._i===i);const inp=document.getElem
   document.getElementById('notes-'+i).innerHTML=t.notes.map(n=>`<div class="note"><div class="note-meta">${n.by} · ${n.t}</div>${n.txt}</div>`).join('');toast('Note added');}
 function setTkStatusVal(i,v){const t=TICKETS.find(x=>x._i===i);if(!t)return;t.status=v;saveTkOv(t.CaseNumber,{status:v});renderTickets();const el=document.getElementById('tk-'+i);if(el)el.classList.add('open');toast('Status: '+v);}
 
-/* ---------- feedback / discussions ---------- */
+/* ---------- feedback hub: discussions, polls, proposals ---------- */
+const EMOJIS=['👍','❤️','🎉','💡','😮'];
+const KINDS={discussion:{label:'Discussion',ic:'ti-message-plus',cls:'kind-discussion'},poll:{label:'Poll',ic:'ti-chart-bar',cls:'kind-poll'},proposal:{label:'Proposal',ic:'ti-bulb',cls:'kind-proposal'}};
+let ndKind='discussion', ndAtts=[];
 function seedDisc(){return [
-  {id:1,title:'WISMO ETA keeps coming back wrong',uc:'WISMO',by:'Elisa L.',t:'2 days ago',votes:12,voted:false,status:'Open',replies:[{by:'Ray Pezzullo',t:'2 days ago',txt:'Seeing this daily — Ada quotes 3-5 days but tracking says delivered. We should flag every instance.'},{by:'Jan K.',t:'1 day ago',txt:'Agreed, mostly on NL parcels. Logged 4 this week.'}]},
-  {id:2,title:'Returns window — Ada says 14 days, policy is 30',uc:'Returns & Refunds',by:'Marco V.',t:'4 days ago',votes:9,voted:false,status:'Open',replies:[{by:'Sophie T.',t:'3 days ago',txt:'Confirmed. Ada is using an old policy doc.'}]},
-  {id:3,title:'BOPIS "ready for pickup" false positives',uc:'BOPIS',by:'Ahmed R.',t:'1 week ago',votes:7,voted:false,status:'Resolved',replies:[{by:'Ray Pezzullo',t:'5 days ago',txt:'Product team shipped a fix — pickup status now syncs live. Thanks all who flagged.'}]},
-  {id:4,title:'Idea: quick-flag button inside Teams',uc:'Other',by:'Lena M.',t:'1 week ago',votes:15,voted:false,status:'Open',replies:[{by:'Ray Pezzullo',t:'6 days ago',txt:'Building this now via Power Automate — daily card with a button.'}]},
+  {id:1,kind:'discussion',title:'Welcome to the Feedback hub',by:'Ray Pezzullo',t:'today',votes:1,voted:false,status:'Open',reacts:{},replies:[{by:'Ray Pezzullo',t:'today',txt:'Use this space for anything Ada: recurring issues, ideas, polls and proposals. Keep flags in the form — this is for the conversation around them.',reacts:{},atts:[]}]},
 ];}
-function discs(){let d=Store.get('discussions',null);if(!d){d=seedDisc();Store.set('discussions',d);}return d;}
-function saveDiscs(d){Store.set('discussions',d);}
-function renderDcFilter(){const d=discs();const c={all:d.length,Open:d.filter(x=>x.status==='Open').length,Resolved:d.filter(x=>x.status==='Resolved').length};
-  document.getElementById('dcFilter').innerHTML=['all','Open','Resolved'].map(s=>`<div class="pill ${dcFilter===s?'active':''}" onclick="setDc('${s}')"><span>${s==='all'?'All':s}</span><span class="pill-n">${c[s]}</span></div>`).join('');}
+function discs(){let d=Store.get('discussions2',null);if(!d){d=seedDisc();Store.set('discussions2',d);}return d;}
+function saveDiscs(d){Store.set('discussions2',d);}
+function renderDcFilter(){const all=discs();const visible=isAdmin()?all:all.filter(x=>x.status!=='Archived');
+  const kc={all:visible.length};Object.keys(KINDS).forEach(k=>kc[k]=visible.filter(x=>(x.kind||'discussion')===k).length);
+  document.getElementById('dcKindFilter').innerHTML=`<div class="pill ${dcKind==='all'?'active':''}" onclick="setDcKind('all')"><span>All types</span><span class="pill-n">${kc.all}</span></div>`+Object.entries(KINDS).filter(([k])=>kc[k]).map(([k,v])=>`<div class="pill ${dcKind===k?'active':''}" onclick="setDcKind('${k}')"><span>${v.label}s</span><span class="pill-n">${kc[k]}</span></div>`).join('');
+  const sc={all:visible.length,Open:visible.filter(x=>x.status==='Open').length,Resolved:visible.filter(x=>x.status==='Resolved').length,Archived:all.filter(x=>x.status==='Archived').length};
+  document.getElementById('dcFilter').innerHTML=['all','Open','Resolved',...(isAdmin()?['Archived']:[])].map(s=>`<div class="pill ${dcFilter===s?'active':''}" onclick="setDc('${s}')"><span>${s==='all'?'All statuses':s}</span><span class="pill-n">${sc[s]}</span></div>`).join('');}
 function setDc(s){dcFilter=s;renderDisc();}
+function setDcKind(k){dcKind=k;renderDisc();}
+function reactRow(map,ctx){map=map||{};return `<div class="react-row">${EMOJIS.map(e=>{const r=map[e]||{n:0,me:false};
+  return `<span class="react ${r.me?'on':''}" onclick="event.stopPropagation();react(${ctx.id},${ctx.ri===undefined?'null':ctx.ri},'${e}')">${e}<span class="react-n">${r.n||''}</span></span>`;}).join('')}</div>`;}
+function attHtml(atts){return (atts||[]).map((a,i)=>a.type&&a.type.startsWith('image/')?`<img class="att-img" src="${a.data}" alt="${esc(a.name)}" onclick="window.open('${a.data.length<2000?a.data:''}')" title="${esc(a.name)}">`:`<a class="att-chip" href="${a.data}" download="${esc(a.name)}"><i class="ti ti-file"></i>${esc(a.name)}</a>`).join('');}
+function pollHtml(x){const total=Math.max(1,(x.pollOpts||[]).reduce((s,o)=>s+(o.n||0),0));const myVote=Store.get('pollvote_'+x.id,null);
+  return `<div style="padding:12px 0 4px">${(x.pollOpts||[]).map((o,i)=>{const pct=Math.round((o.n||0)/total*100);
+    return `<div class="poll-opt ${myVote===i?'voted':''}" onclick="event.stopPropagation();votePoll(${x.id},${i})"><div class="poll-fill" style="transform:scaleX(${pct/100})"></div><span>${esc(o.t)}</span><span class="poll-pct">${o.n||0} · ${pct}%</span></div>`;}).join('')}
+  <div class="hint">${myVote===null?'Tap an option to vote — you can change it.':'You voted. Tap another option to switch.'}</div></div>`;}
 function renderDisc(){
   renderDcFilter();
-  let d=[...discs()].sort((a,b)=>b.votes-a.votes);
+  let d=[...discs()];
+  if(!isAdmin())d=d.filter(x=>x.status!=='Archived');
+  if(dcKind!=='all')d=d.filter(x=>(x.kind||'discussion')===dcKind);
   if(dcFilter!=='all')d=d.filter(x=>x.status===dcFilter);
+  d.sort((a,b)=>b.votes-a.votes);
   const host=document.getElementById('dcList');
-  if(!d.length){host.innerHTML='<div class="empty">No discussions yet.</div>';return;}
-  host.innerHTML=d.map(x=>`<div class="disc" id="disc-${x.id}">
+  if(!d.length){host.innerHTML='<div class="empty">Nothing here yet — start one.</div>';return;}
+  host.innerHTML=d.map(x=>{const k=KINDS[x.kind||'discussion'];
+    return `<div class="disc" id="disc-${x.id}">
     <div class="disc-head">
       <div class="disc-vote ${x.voted?'voted':''}" onclick="event.stopPropagation();voteDisc(${x.id})"><i class="ti ti-chevron-up"></i><span class="disc-vote-n">${x.votes}</span></div>
-      <div class="disc-main" onclick="toggleDisc(${x.id})"><div class="disc-title">${x.title}</div><div class="disc-sub"><span>${x.uc}</span><span>by ${x.by}</span><span>${x.t}</span><span>${x.replies.length} replies</span></div></div>
-      <span class="st ${x.status==='Open'?'st-new':'st-acted'}">${x.status}</span>
+      <div class="disc-main" onclick="toggleDisc(${x.id})"><div class="disc-title">${esc(x.title)}</div><div class="disc-sub"><span class="kind-tag ${k.cls}">${k.label}</span><span>by ${esc(x.by)}</span><span>${esc(x.t)}</span><span>${x.replies.length} repl${x.replies.length===1?'y':'ies'}</span></div></div>
+      <span class="st ${x.status==='Open'?'st-new':x.status==='Resolved'?'st-acted':'st-closed'}">${x.status}</span>
     </div>
     <div class="disc-body">
-      ${x.replies.map(r=>`<div class="reply"><div class="reply-meta">${r.by} · ${r.t}</div>${r.txt}</div>`).join('')}
-      <div class="note-add"><input type="text" placeholder="Write a reply…" id="ri-${x.id}" onkeydown="if(event.key==='Enter')addReply(${x.id})"><button class="btn" onclick="addReply(${x.id})">Reply</button></div>
-    </div></div>`).join('');
+      ${x.kind==='poll'?pollHtml(x):''}
+      ${reactRow(x.reacts,{id:x.id,always:false})}
+      ${x.replies.map((r,ri)=>`<div class="reply"><div class="reply-meta">${esc(r.by)} · ${esc(r.t)}</div>${esc(r.txt)}${attHtml(r.atts)}${reactRow(r.reacts,{id:x.id,ri})}</div>`).join('')}
+      <div class="note-add" style="align-items:center"><button class="icon-btn" style="width:36px;height:36px" title="Attach" onclick="document.getElementById('rf-${x.id}').click()"><i class="ti ti-paperclip"></i></button><input type="file" id="rf-${x.id}" style="display:none" multiple onchange="attachToReply(${x.id},event)"><input type="text" placeholder="Write a reply…" id="ri-${x.id}" onkeydown="if(event.key==='Enter')addReply(${x.id})"><button class="btn" onclick="addReply(${x.id})">Reply</button></div>
+      <div id="ratts-${x.id}" style="font-size:11px; color:var(--dim)"></div>
+      ${isAdmin()?`<div class="mod-row"><i class="ti ti-shield-cog" style="color:var(--dim)"></i>
+        <select onchange="modStatus(${x.id},this.value)">${['Open','Resolved','Archived'].map(s=>`<option ${s===x.status?'selected':''}>${s}</option>`).join('')}</select>
+        <button class="nav-btn" style="color:var(--red)" onclick="modDelete(${x.id})"><i class="ti ti-trash" style="vertical-align:-2px"></i> Delete</button>
+        <span style="font-family:var(--fm); font-size:10px; color:var(--faint)">admin</span></div>`:''}
+    </div></div>`;}).join('');
 }
 function toggleDisc(id){document.getElementById('disc-'+id)?.classList.toggle('open');}
-function voteDisc(id){const d=discs();const x=d.find(i=>i.id===id);if(!x)return;x.voted=!x.voted;x.votes+=x.voted?1:-1;saveDiscs(d);renderDisc();}
-function addReply(id){const d=discs();const x=d.find(i=>i.id===id);const inp=document.getElementById('ri-'+id);const v=inp.value.trim();if(!v||!x)return;
-  x.replies.push({by:me(),t:'just now',txt:v});saveDiscs(d);renderDisc();document.getElementById('disc-'+id).classList.add('open');toast('Reply posted');}
-function openNewDisc(){document.getElementById('ndUC').innerHTML=USE_CASES.map(u=>`<option>${u}</option>`).join('');document.getElementById('ndTitle').value='';document.getElementById('ndBody').value='';document.getElementById('discOverlay').classList.add('show');}
+function voteDisc(id){const d=discs();const x=d.find(i=>i.id===id);if(!x)return;x.voted=!x.voted;x.votes+=x.voted?1:-1;saveDiscs(d);renderDisc();document.getElementById('disc-'+id)?.classList.add('open');}
+function votePoll(id,opt){const d=discs();const x=d.find(i=>i.id===id);if(!x||!x.pollOpts)return;
+  const prev=Store.get('pollvote_'+id,null);
+  if(prev===opt)return;
+  if(prev!==null&&x.pollOpts[prev])x.pollOpts[prev].n=Math.max(0,(x.pollOpts[prev].n||0)-1);
+  x.pollOpts[opt].n=(x.pollOpts[opt].n||0)+1;Store.set('pollvote_'+id,opt);saveDiscs(d);renderDisc();document.getElementById('disc-'+id)?.classList.add('open');}
+function react(id,ri,e){const d=discs();const x=d.find(i=>i.id===id);if(!x)return;
+  const target=ri===null?x:(x.replies[ri]||{});target.reacts=target.reacts||{};
+  const r=target.reacts[e]||{n:0,me:false};r.me=!r.me;r.n=Math.max(0,r.n+(r.me?1:-1));target.reacts[e]=r;
+  saveDiscs(d);renderDisc();document.getElementById('disc-'+id)?.classList.add('open');}
+let replyAtts={};
+function fileToAtt(f,cb){if(f.size>300*1024){toast(f.name+': too large (max 300 KB)');return;}
+  const rd=new FileReader();rd.onload=()=>cb({name:f.name,type:f.type,data:rd.result});rd.readAsDataURL(f);}
+function attachToReply(id,e){[...e.target.files].forEach(f=>fileToAtt(f,a=>{(replyAtts[id]=replyAtts[id]||[]).push(a);
+  document.getElementById('ratts-'+id).textContent=replyAtts[id].map(x=>x.name).join(' · ');}));e.target.value='';}
+function addReply(id){const d=discs();const x=d.find(i=>i.id===id);const inp=document.getElementById('ri-'+id);const v=inp.value.trim();if((!v&&!(replyAtts[id]||[]).length)||!x)return;
+  x.replies.push({by:me(),t:'just now',txt:v,reacts:{},atts:replyAtts[id]||[]});replyAtts[id]=[];
+  try{saveDiscs(d);}catch(e2){toast('Storage full — attachment too big');x.replies.pop();return;}
+  renderDisc();document.getElementById('disc-'+id).classList.add('open');toast('Reply posted');}
+function modStatus(id,s){const d=discs();const x=d.find(i=>i.id===id);if(!x)return;x.status=s;saveDiscs(d);renderDisc();toast('Status: '+s);}
+function modDelete(id){const d=discs();const i=d.findIndex(x=>x.id===id);if(i<0)return;if(!confirm('Delete this thread for good?'))return;d.splice(i,1);saveDiscs(d);renderDisc();toast('Deleted');}
+function openNewDisc(kind){ndKind=kind||'discussion';ndAtts=[];
+  const k=KINDS[ndKind];
+  document.getElementById('ndHead').textContent=ndKind==='poll'?'Create a poll':ndKind==='proposal'?'Make a proposal':'Start a discussion';
+  document.getElementById('ndIcon').className='ti '+k.ic;
+  document.getElementById('ndPollWrap').style.display=ndKind==='poll'?'block':'none';
+  document.getElementById('ndBodyLbl').textContent=ndKind==='proposal'?'What do you propose, and why?':'Details';
+  document.getElementById('ndSubmit').textContent='Post '+k.label.toLowerCase();
+  document.getElementById('ndTitle').value='';document.getElementById('ndBody').value='';document.getElementById('ndAttList').textContent='';
+  document.getElementById('discOverlay').classList.add('show');}
+function attachToDraft(e){[...e.target.files].forEach(f=>fileToAtt(f,a=>{ndAtts.push(a);document.getElementById('ndAttList').textContent=ndAtts.map(x=>x.name).join(' · ');}));e.target.value='';}
 function createDisc(){const t=document.getElementById('ndTitle').value.trim();const b=document.getElementById('ndBody').value.trim();if(!t){toast('Add a title');return;}
   const d=discs();const id=Math.max(0,...d.map(x=>x.id))+1;
-  d.push({id,title:t,uc:document.getElementById('ndUC').value,by:me(),t:'just now',votes:1,voted:true,status:'Open',replies:b?[{by:me(),t:'just now',txt:b}]:[]});
-  saveDiscs(d);document.getElementById('discOverlay').classList.remove('show');renderDisc();toast('Discussion posted');}
+  const item={id,kind:ndKind,title:t,by:me(),t:'just now',votes:1,voted:true,status:'Open',reacts:{},replies:b||ndAtts.length?[{by:me(),t:'just now',txt:b,reacts:{},atts:ndAtts}]:[]};
+  if(ndKind==='poll'){const opts=document.getElementById('ndPollOpts').value.split('\n').map(s=>s.trim()).filter(Boolean).slice(0,6);
+    if(opts.length<2){toast('A poll needs at least 2 options');return;}
+    item.pollOpts=opts.map(o=>({t:o,n:0}));}
+  d.push(item);
+  try{saveDiscs(d);}catch(e2){toast('Storage full — remove an attachment');return;}
+  document.getElementById('discOverlay').classList.remove('show');renderDisc();toast(KINDS[ndKind].label+' posted');}
 
 /* ---------- patterns ---------- */
 function renderPatterns(){
@@ -993,7 +1285,7 @@ function renderPatterns(){
       <div style="font-size:13px;color:var(--dim);line-height:1.5"><b style="color:var(--text)">${x.n} cases</b> flagged · recurring theme: “${sample}”. ${st==='Shipped'?'Ada updated — monitoring impact.':st==='In progress'?'Fix being scoped with the product team.':'Enough signal to raise with product.'}</div>
       <div class="ctrl-row" style="margin-top:10px"><button class="btn btn-ghost" onclick="go('feedback')" style="font-size:12px;padding:7px 12px">Discuss</button><button class="btn btn-ghost" onclick="filterTicketsByUC('${x.u.replace(/'/g,"\\'")}')" style="font-size:12px;padding:7px 12px">View tickets</button></div></div>`;}).join('')||'<div class="empty">No patterns yet.</div>';
 }
-function filterTicketsByUC(u){go('tickets');setTimeout(()=>{const s=document.getElementById('tkSearch');if(s){s.value=u;renderTickets();}},50);}
+function filterTicketsByUC(u){go('impact');setTimeout(()=>{const s=document.getElementById('tkSearch');if(s){s.value=u;renderTickets();}},50);}
 
 /* ---------- profile ---------- */
 const BADGES=[
@@ -1067,7 +1359,7 @@ function initSeg(id,key,def,apply){const el=document.getElementById(id);const cu
 function saveIdentity(){const v=document.getElementById('setName').value.trim();if(v)Store.set('name',v);Store.set('role',document.getElementById('setRole').value);Store.set('team',document.getElementById('setTeam').value);syncChip();renderProfile();toast('Identity saved');}
 function saveLevels(){const L=[1,2,3,4].map(i=>Math.max(1,parseInt(document.getElementById('lvl'+i).value)||1));Store.set('levels',L);renderLB();renderProfile();syncChip();toast('Thresholds updated');}
 function savePrefs(){Store.set('lang',document.getElementById('setLang').value);Store.set('tz',document.getElementById('setTz').value);Store.set('df',document.getElementById('setDf').value);Store.set('channel',document.getElementById('setChannel').value);toast('Preferences saved');}
-function saveSource(){Store.set('flowUrl',document.getElementById('setFlowUrl').value.trim());Store.set('site',document.getElementById('setSite').value.trim());Store.set('list',document.getElementById('setList').value.trim());Store.set('formUrl',document.getElementById('setFormUrl').value.trim());document.getElementById('srcStatus').textContent='Reloading…';loadData().then(()=>{TICKETS=[];enrichTickets();document.getElementById('srcStatus').textContent=(LIVE?'Live · ':'Demo · ')+DATA.length+' records';renderUC();renderLB();toast('Saved');});}
+function saveSource(){Store.set('flowUrl',document.getElementById('setFlowUrl').value.trim());Store.set('site',document.getElementById('setSite').value.trim());Store.set('list',document.getElementById('setList').value.trim());Store.set('formUrl',document.getElementById('setFormUrl').value.trim());document.getElementById('srcStatus').textContent='Reloading…';loadData().then(()=>{TICKETS=[];enrichTickets();document.getElementById('srcStatus').textContent=(LIVE?'Live · ':'Demo · ')+DATA.length+' records';renderPeople();renderLB();toast('Saved');});}
 function exportMyData(){const mine=DATA.filter(r=>r.SubmittedBy===me());const blob=new Blob([JSON.stringify({user:me(),flags:mine},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='my-ada-data.json';a.click();toast('Your data exported');}
 function clearLocal(){['theme','density','textsize','a11y_motion','a11y_contrast','a11y_dys','n_milestone','n_digest','n_mention','n_dup','n_impact','p_board','p_anon','p_activity','role','team','lang','tz','df','channel'].forEach(k=>Store.del(k));applyDisplay();renderThemes();renderToggles();toast('Local settings reset');}
 
@@ -1088,7 +1380,10 @@ function toggleFAQ(i){const q=document.querySelectorAll('.faq-q')[i],a=document.
 
 /* ---------- admin gate + crypto burn ---------- */
 let roomKey=null,opName='',burnMsgs=[],burnTimer=null,burnEndsAt=0,roomSalt=null;
-document.getElementById('adminLock').addEventListener('click',()=>{document.getElementById('gateErr').style.display='none';document.getElementById('gateOverlay').classList.add('show');});
+document.getElementById('adminLock').addEventListener('click',()=>{
+  if(isAdmin()){go('admin');}
+  else{document.getElementById('gateErr').style.display='none';document.getElementById('gateOverlay').classList.add('show');}
+});
 function closeGate(){document.getElementById('gateOverlay').classList.remove('show');}
 async function sha256Bytes(s){return new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)));}
 async function deriveKey(p,salt){const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:120000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
@@ -1097,10 +1392,9 @@ async function dec(k,o){const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:
 async function enterRoom(){const op=document.getElementById('gateOp').value.trim(),k=document.getElementById('gateKey').value,err=document.getElementById('gateErr');
   if(!op){err.textContent='Enter your operator name.';err.style.display='block';return;}
   if(!k||k.length<4){err.textContent='Shared identifier must be at least 4 characters.';err.style.display='block';return;}
-  try{roomSalt=(await sha256Bytes(k)).slice(0,16);roomKey=await deriveKey(k,roomSalt);opName=op;burnMsgs=[];document.getElementById('gateKey').value='';closeGate();document.getElementById('adminOverlay').classList.add('show');switchAdminTab('burn');renderBurn();renderData();startBurnTimer();}
+  try{roomSalt=(await sha256Bytes(k)).slice(0,16);roomKey=await deriveKey(k,roomSalt);opName=op;burnMsgs=[];document.getElementById('gateKey').value='';closeGate();document.getElementById('adminOverlay').classList.add('show');renderBurn();startBurnTimer();}
   catch(e){err.textContent='Could not derive key in this browser.';err.style.display='block';}}
 function closeAdmin(){document.getElementById('adminOverlay').classList.remove('show');wipeRoom();}
-function switchAdminTab(t){document.querySelectorAll('.admin-tab').forEach(x=>x.classList.toggle('active',x.dataset.atab===t));document.getElementById('atab-burn').style.display=t==='burn'?'block':'none';document.getElementById('atab-data').style.display=t==='data'?'block':'none';}
 function startBurnTimer(){clearInterval(burnTimer);burnEndsAt=Date.now()+15*60*1000;burnTimer=setInterval(tickBurn,1000);tickBurn();}
 function tickBurn(){const rem=Math.max(0,burnEndsAt-Date.now()),m=Math.floor(rem/60000),s=Math.floor((rem%60000)/1000),el=document.getElementById('burnTimer');el.textContent=`${m}:${String(s).padStart(2,'0')}`;el.classList.toggle('warn',rem<=120000);if(rem<=0)burnNow(true);}
 function wipeRoom(){clearInterval(burnTimer);burnMsgs=[];roomKey=null;roomSalt=null;opName='';}
@@ -1172,20 +1466,70 @@ async function loadFromSharePoint(){
 }
 async function loadData(){
   const sub=document.getElementById('lbSub');
-  try{ DATA=await loadFromFlow();
-       sub.textContent='Live data · '+DATA.length+' total contributions'; LIVE=true; return; }
-  catch(e){ /* fall through */ }
-  try{ DATA=await loadFromApi();
-       sub.textContent='Live data · '+DATA.length+' total contributions'; LIVE=true; return; }
-  catch(e){ /* fall through */ }
-  try{ DATA=await loadFromSharePoint();
-       sub.textContent='Live data (SharePoint) · '+DATA.length+' total contributions'; LIVE=true; return; }
-  catch(e){ /* fall through */ }
-  demo(); LIVE=false;
-  sub.innerHTML='Demo mode · <a href="#" onclick="openSetup();return false" style="color:var(--accent)">connect your team data</a>';
+  await loadHistory();
+  LIVE=false;
+  try{ RAW=await loadFromFlow(); LIVE=true; }
+  catch(e){ try{ RAW=await loadFromApi(); LIVE=true; }
+  catch(e2){ try{ RAW=await loadFromSharePoint(); LIVE=true; }
+  catch(e3){ demo(); RAW=DATA; } } }
+  applyData();
+  if(LIVE) sub.textContent='Live data · '+DATA.length+' contributions'+(Store.get('includeHistory',false)?' (incl. imported history)':'');
+  else sub.innerHTML='Demo mode · <a href="#" onclick="openSetup();return false" style="color:var(--accent)">connect your team data</a>';
 }
 function demo(){const names=['Ray Pezzullo','Elisa L.','Jan K.','Marco V.','Sophie T.','Ahmed R.','Lena M.','Tom B.','Nina P.','Karl S.'];const now=new Date();DATA=[];const w={['Ray Pezzullo']:14,['Elisa L.']:9,['Jan K.']:7};
   names.forEach(n=>{const c=w[n]||Math.floor(Math.random()*6)+1;for(let i=0;i<c;i++){const da=Math.floor(Math.random()*25);const d=new Date(now);d.setDate(d.getDate()-da);d.setHours(Math.floor(Math.random()*13)+7);const uc=USE_CASES[Math.floor(Math.random()*USE_CASES.length)];const pool=SAMPLE_DESC[uc];DATA.push({SubmittedBy:n,SubmittedAt:d.toISOString(),UseCase:uc,CaseNumber:'C-'+String(1000+DATA.length).padStart(6,'0'),OrderNumber:'SS-'+(90000+DATA.length),CustomerEmail:'customer'+i+'@email.com',IssueDescription:pool[Math.floor(Math.random()*pool.length)]});}});}
+
+/* ---------- night mode ---------- */
+function syncNight(){const dark=(Store.get('theme','suitsupply')==='suitsupply-dark');
+  const ic=document.getElementById('nightIc'),lbl=document.getElementById('nightLbl');
+  if(ic)ic.className='ti '+(dark?'ti-sun':'ti-moon');if(lbl)lbl.textContent=dark?'Day mode':'Night mode';}
+function toggleNight(){const dark=(Store.get('theme','suitsupply')==='suitsupply-dark');
+  setTheme(dark?'suitsupply':'suitsupply-dark');syncNight();}
+
+/* ---------- admin console ---------- */
+function syncNav(){const el=document.getElementById('adminNav');if(el)el.style.display=isAdmin()?'block':'none';}
+function renderAdmin(){
+  if(!isAdmin()){go('leaderboard');toast('Restricted to admins');return;}
+  // history batch
+  const h=HISTORY&&HISTORY.records?HISTORY.records:[];
+  const on=Store.get('includeHistory',false);
+  const people=new Set(h.map(r=>r.SubmittedBy)).size;
+  const dates=h.map(r=>r.SubmittedAt).sort();
+  document.getElementById('histStats').innerHTML=h.length
+    ?`<span><b>${h.length}</b> submissions</span><span><b>${people}</b> contributors</span><span><b>${dates[0]?.slice(0,10)}</b> → <b>${dates[dates.length-1]?.slice(0,10)}</b></span><span>Status: <b>${on?'merged (this device)':'not merged'}</b></span>`
+    :'Batch not found — data/history.json missing.';
+  document.getElementById('histMergeBtn').innerHTML=on?'<i class="ti ti-x" style="vertical-align:-2px; margin-right:5px"></i>Unmerge':'<i class="ti ti-git-merge" style="vertical-align:-2px; margin-right:5px"></i>Merge into dashboard';
+  // test toggle
+  document.getElementById('swTests').classList.toggle('on',Store.get('hideTests',true));
+  const hiddenN=RAW.filter(isTestRow).length+(on?(HISTORY.records||[]).filter(isTestRow).length:0);
+  document.getElementById('testStats').innerHTML=`<span>Currently matching the test rule: <b>${hiddenN}</b> record${hiddenN===1?'':'s'}</span>`;
+  // admins
+  document.getElementById('adminList').innerHTML=adminEmails().map(e=>`<span class="att-chip" style="cursor:default">${esc(e)}${BASE_ADMINS.includes(e)?' <span style="color:var(--faint)">(owner)</span>':` <i class="ti ti-x" style="cursor:pointer" onclick="removeAdmin('${esc(e)}')"></i>`}</span>`).join('');
+  renderPatterns();renderData();
+}
+function toggleTests(el){const v=!Store.get('hideTests',true);Store.set('hideTests',v);el.classList.toggle('on',v);
+  applyData();TICKETS=[];enrichTickets();renderPeople();renderLB();renderAdmin();toast(v?'Test data hidden':'Test data shown');}
+function toggleHistory(){const v=!Store.get('includeHistory',false);Store.set('includeHistory',v);
+  applyData();TICKETS=[];enrichTickets();renderPeople();renderLB();syncChip();renderAdmin();
+  toast(v?'Historical batch merged — leaderboard, scoring and badges updated':'Historical batch removed');}
+function previewHistory(){
+  const h=(HISTORY&&HISTORY.records)||[];
+  document.getElementById('histTable').innerHTML=`<thead><tr><th>Date</th><th>Submitter</th><th>SF case</th><th>Description</th></tr></thead><tbody>${h.map(r=>`<tr><td style="white-space:nowrap">${r.SubmittedAt.slice(0,10)}</td><td style="white-space:nowrap">${esc(r.SubmittedBy)}</td><td style="white-space:nowrap">${esc(r.CaseNumber)}</td><td>${esc(r.IssueDescription)}</td></tr>`).join('')}</tbody>`;
+  document.getElementById('histOverlay').classList.add('show');
+}
+function downloadHistoryCSV(){
+  const h=(HISTORY&&HISTORY.records)||[];if(!h.length){toast('No batch loaded');return;}
+  // Columns mirror the live "Ada Flags form.xlsx" response table for easy pasting.
+  const cols=['Id','Start time','Completion time','Email','Name','Where do you work?','Issue Description','Salesforce Case Number'];
+  const lines=[cols.join(',')].concat(h.map((r,i)=>{const d=new Date(r.SubmittedAt);const ts=d.toLocaleDateString('en-US')+' '+d.toTimeString().slice(0,5);
+    return [1000+i,ts,ts,r.SubmitterEmail,r.SubmittedBy,r.Store||'Customer Service HQ',(r.IssueDescription||'').replace(/"/g,'""'),r.CaseNumber||''].map(v=>`"${v}"`).join(',');}));
+  const blob=new Blob([lines.join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ada-hub-historical-import.csv';a.click();
+  toast('CSV downloaded — paste rows into the live workbook table');
+}
+function addAdmin(){const inp=document.getElementById('newAdmin');const e=(inp.value||'').trim().toLowerCase();
+  if(!/^[^@\s]+@suitsupply\.com$/.test(e)){toast('Use a name@suitsupply.com email');return;}
+  const x=Store.get('extraAdmins',[]);if(!x.includes(e))x.push(e);Store.set('extraAdmins',x);inp.value='';renderAdmin();toast('Admin added');}
+function removeAdmin(e){Store.set('extraAdmins',Store.get('extraAdmins',[]).filter(x=>x!==e));renderAdmin();}
 
 /* ---------- init ---------- */
 async function init(){
@@ -1208,7 +1552,8 @@ async function init(){
   initSeg('segText','textsize','normal',true);
   applyDisplay();
   document.getElementById('weekLabel').textContent=weekLabel(0);
-  loadData().then(()=>{enrichTickets();renderUC();renderLB();syncChip();
+  syncNight();syncNav();
+  loadData().then(()=>{enrichTickets();renderPeople();renderLB();syncChip();syncNav();
     if(needsSetup())openSetup();});
 }
 init();
