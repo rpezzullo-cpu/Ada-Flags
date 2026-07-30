@@ -1,0 +1,25 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "AzureWebJobsStorage": "",
+
+    "DATA_SOURCE": "excel",
+
+    "TENANT_ID": "fbe43f29-18b2-46ca-a741-bcc4672ba19c",
+    "GRAPH_CLIENT_ID": "<app-registration-client-id>",
+    "GRAPH_CLIENT_SECRET": "<app-registration-client-secret>",
+    "EXCEL_SHARE_URL": "https://suitsupply-my.sharepoint.com/:x:/r/personal/rpezzullo_suitsupply_com/_layouts/15/Doc.aspx?sourcedoc=%7B5826C24E-2D65-4A6A-A0C3-BF84059402D9%7D&file=Ada%20Flags%20form.xlsx",
+    "EXCEL_WORKSHEET": "",
+
+    "JIRA_BASE_URL": "https://suitsupply.atlassian.net",
+    "JIRA_EMAIL": "rpezzullo@suitsupply.com",
+    "JIRA_API_TOKEN": "<atlassian-api-token>",
+    "JIRA_PROJECT": "AH",
+
+    "ALLOW_ANONYMOUS": "true"
+  },
+  "Host": {
+    "CORS": "*"
+  }
+}

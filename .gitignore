@@ -1,0 +1,16 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Azure Functions local settings (contains secrets — never commit)
+api/local.settings.json
+local.settings.json
+
+# Env
+.env
+.env.*
+
+# Editor / OS
+.DS_Store
+.vscode/
+*.log
