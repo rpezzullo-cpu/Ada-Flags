@@ -722,10 +722,11 @@ del(k){delete mem[k];try{if(ok)localStorage.removeItem('adahub_'+k);}catch(e){}}
 const TEAMS_URL='https://teams.microsoft.com/l/channel/19%3AacV8nrFb2DGW8j9N23CFFZAcoItGQVXeTmokmlyEPps1%40thread.tacv2/Self-Service%20Troubleshooting?groupId=12fadb7e-2e4c-4bd0-b928-31630e31cad1&tenantId=fbe43f29-18b2-46ca-a741-bcc4672ba19c&ngc=true&allowXTenantAccess=true';
 function ticketUrl(){return (Store.get('formUrl','')||'').trim()||TEAMS_URL;}
 
-/* ---------- identity (Azure Static Web Apps SSO) ----------
-   When hosted on Azure Static Web Apps with Entra ID, /.auth/me returns the
-   signed-in Suitsupply user. We adopt that identity everywhere (chip, profile,
-   "my" filtering) so each person gets their own dedicated view after one login.
+/* ---------- identity (Entra ID SSO via the Cloudflare backend) ----------
+   /api/me returns the signed-in Suitsupply user (from the session cookie set
+   after Entra sign-in). We adopt that identity everywhere (chip, profile, "my"
+   filtering) so each person gets their own dedicated view after one login. The
+   backend middleware redirects unauthenticated visitors to sign in first.
    Locally / signed out, this silently no-ops and the app runs in demo mode. */
 let SSO_ACTIVE=false;
 function titleCaseName(s){return (s||'').trim().replace(/[._-]+/g,' ').replace(/\s+/g,' ')
@@ -734,17 +735,12 @@ function nameFromEmail(email){const local=(email||'').split('@')[0]||'';
   const spaced=local.replace(/([a-z])([A-Z])/g,'$1 $2');return titleCaseName(spaced)||email;}
 async function bootstrapIdentity(){
   try{
-    const res=await fetch('/.auth/me',{headers:{'Accept':'application/json'}});
+    const res=await fetch('/api/me',{headers:{'Accept':'application/json'},credentials:'include'});
     if(!res.ok)throw new Error('no auth');
     const d=await res.json();
-    const cp=(d&&d.clientPrincipal)||null;
-    if(!cp)throw new Error('signed out');
-    const claims=cp.claims||[];
-    const claim=t=>{const c=claims.find(x=>x.typ===t||(x.typ||'').endsWith('/'+t));return c&&c.val;};
-    const email=(cp.userDetails||claim('email')||claim('preferred_username')||claim('upn')||'').toLowerCase();
-    const displayName=claim('name')||claim('given_name')&&claim('family_name')
-      ? [claim('given_name'),claim('family_name')].filter(Boolean).join(' ')
-      : (claim('name')||nameFromEmail(email));
+    if(!d||!d.authenticated)throw new Error('signed out');
+    const email=(d.email||'').toLowerCase();
+    const displayName=d.name||nameFromEmail(email);
     if(email)Store.set('email',email);
     if(displayName)Store.set('name',displayName);
     SSO_ACTIVE=true;
@@ -757,7 +753,7 @@ function lockIdentityUI(){
   const footer=document.querySelector('.side-footer');
   if(footer&&!document.getElementById('signOut')){
     const a=document.createElement('a');
-    a.id='signOut';a.href='/.auth/logout?post_logout_redirect_uri=/';
+    a.id='signOut';a.href='/api/auth/logout';
     a.className='chip-meta';a.style.cssText='display:block;text-align:center;margin-top:8px;color:var(--dim);text-decoration:none';
     a.textContent='Sign out';footer.appendChild(a);
   }
@@ -1073,10 +1069,10 @@ window.addEventListener('beforeunload',wipeRoom);
 
 /* ---------- data ----------
    Load order:
-   1. /api/contributions  — the Azure Static Web Apps backend (Jira AH or a
-      SharePoint list, normalised server-side). This is the hosted path.
-   2. SharePoint REST direct — only works when the page is served from the
-      SharePoint site itself (same-origin cookie). Kept for that scenario.
+   1. /api/contributions  — the Cloudflare Functions backend (Jira AH and/or the
+      Forms Excel workbook, normalised server-side). This is the hosted path.
+   2. SharePoint REST direct — only works when the page is served from a
+      SharePoint site itself (same-origin cookie). Kept as an optional fallback.
    3. demo() — sample data so the UI always renders (local preview / signed out).
 */
 function normalizeRecords(rows){

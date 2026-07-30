@@ -1,25 +1,18 @@
-'use strict';
-
-/**
- * Turn a Microsoft Forms response worksheet (header row + value rows) into the
- * record shape the Ada Hub frontend expects:
- *   { SubmittedBy, SubmitterEmail, SubmittedAt, UseCase, CaseNumber,
- *     OrderNumber, CustomerEmail, IssueDescription, Status }
- *
- * Form/export column headers are long, occasionally reworded, and sometimes
- * localized, so we match columns by keyword rather than hardcoding exact
- * strings. Specific targets (customer email, use case) are claimed before
- * generic ones (email) so a single "Email" column lands on the submitter.
- */
+// Turn a Microsoft Forms response worksheet (header row + value rows) into the
+// record shape the Ada Hub frontend expects:
+//   { SubmittedBy, SubmitterEmail, SubmittedAt, UseCase, CaseNumber,
+//     OrderNumber, CustomerEmail, IssueDescription, Store, Status }
+//
+// Form/export headers are long, occasionally reworded, and sometimes localized,
+// so we match columns by keyword rather than hardcoding exact strings. Specific
+// targets (customer email, use case) are claimed before generic ones (email) so
+// a single "Email" column lands on the submitter.
 
 const norm = (s) => (s == null ? '' : String(s)).trim().toLowerCase();
 
 // Ordered so that more specific matchers run first and consume their column.
 const TARGETS = [
-  {
-    key: 'SubmittedAt',
-    match: (h) => /completion time|submission time|end time|timestamp|submitted at|start time/.test(h)
-  },
+  { key: 'SubmittedAt', match: (h) => /completion time|submission time|end time|timestamp|submitted at|start time/.test(h) },
   { key: 'CustomerEmail', match: (h) => h.includes('email') && h.includes('customer') },
   { key: 'CustomerPhone', match: (h) => h.includes('phone') },
   { key: 'CustomerSFID', match: (h) => h.includes('salesforce') && (h.includes('id') || h.includes('sfid')) },
@@ -54,8 +47,8 @@ function buildColumnMap(headers) {
 
 function toIso(v) {
   if (v == null || v === '') return null;
-  // Excel serial date number -> JS date.
   if (typeof v === 'number' && isFinite(v)) {
+    // Excel serial date -> JS date.
     const ms = Math.round((v - 25569) * 86400 * 1000);
     const d = new Date(ms);
     return isNaN(d) ? null : d.toISOString();
@@ -75,10 +68,6 @@ function nameFromEmail(email) {
     .trim();
 }
 
-/**
- * @param {Array<Array>} values  first row = headers, rest = data rows
- * @returns {Array<Object>} normalized records
- */
 function recordsFromValues(values) {
   if (!Array.isArray(values) || values.length < 2) return [];
   const headers = values[0];
@@ -89,7 +78,7 @@ function recordsFromValues(values) {
     const row = values[r];
     if (!row || row.every((c) => c == null || c === '')) continue;
     const submittedAt = toIso(at(row, 'SubmittedAt'));
-    if (!submittedAt) continue; // skip rows without a usable timestamp
+    if (!submittedAt) continue;
     const email = norm(at(row, 'SubmitterEmail'));
     let by = String(at(row, 'SubmittedBy') || '').trim();
     if (!by) by = nameFromEmail(email) || 'Unknown';
@@ -109,4 +98,4 @@ function recordsFromValues(values) {
   return out;
 }
 
-module.exports = { recordsFromValues, buildColumnMap, nameFromEmail, toIso };
+export { recordsFromValues, buildColumnMap, nameFromEmail, toIso };

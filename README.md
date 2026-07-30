@@ -13,9 +13,9 @@ account, and gets their own dedicated view. Nobody outside the tenant can get in
 
 | Layer | What it is |
 | --- | --- |
-| **Frontend** (`app/index.html`) | The full Ada Hub UI — leaderboard, impact feed, My tickets, Feedback hub, Patterns, Profile, Settings. Self-contained HTML/CSS/JS. Reads identity from `/.auth/me` and data from `/api/contributions`, with a demo-mode fallback so it always renders. |
-| **Backend** (`api/`) | Azure Functions (Node 18, no external deps). Reads the Forms response workbook via Microsoft Graph and, optionally, live ticket status from Jira. Secrets stay server-side. |
-| **Auth + hosting** | Azure Static Web Apps (Standard) with Entra ID, locked to the Suitsupply tenant. |
+| **Frontend** (`app/index.html`) | The full Ada Hub UI — leaderboard, impact feed, My tickets, Feedback hub, Patterns, Profile, Settings. Self-contained HTML/CSS/JS. Reads identity from `/api/me` and data from `/api/contributions`, with a demo-mode fallback so it always renders. |
+| **Backend** (`functions/`) | Cloudflare Pages Functions (ESM, no external deps). Handles Entra ID sign-in, reads the Forms response workbook via Microsoft Graph, and (optionally) live ticket status from Jira. Secrets stay server-side. |
+| **Auth + hosting** | Cloudflare Pages (free tier) with Entra ID sign-in locked to the Suitsupply tenant. **$0** — no admin consent required. |
 
 ## Data sources
 
@@ -33,9 +33,11 @@ Choose with the `DATA_SOURCE` app setting: `excel` (default), `jira`, or `both`.
 
 | Endpoint | Returns |
 | --- | --- |
-| `GET /api/me` | The signed-in Suitsupply user (from the SWA auth header). |
+| `GET /api/me` | The signed-in Suitsupply user (from the session cookie). |
 | `GET /api/contributions` | Normalized contribution records for the dashboard. |
 | `GET /api/health` | Which data sources are configured (no secrets). |
+| `GET /api/auth/login` · `callback` · `logout` | Entra ID sign-in flow. |
+| `GET /api/setup/graph` | One-time, owner-only: connect the workbook via Graph. |
 
 Record shape:
 
@@ -57,22 +59,23 @@ Record shape:
 ## Deploy
 
 See **[docs/SETUP.md](docs/SETUP.md)** for the full click-by-click guide
-(Azure Static Web App, one Entra app registration for login + Graph, app
-settings, optional Jira, verification). Summary:
+(Cloudflare Pages, one Entra app registration, variables, optional Jira,
+verification). Summary — all free, no admin consent:
 
-1. Create an Azure **Static Web App (Standard)** pointed at this repo → `app` / `api`.
-2. Register one Entra app (single-tenant), add a Graph `Files.Read.All`
-   application permission with admin consent.
-3. Add the app settings from `api/local.settings.json.example` to the Static
-   Web App configuration.
-4. Verify at `/api/health`, then share the URL.
+1. Create a **Cloudflare Pages** project pointed at this repo → build output `app`;
+   add a **KV namespace** bound as `ADA_KV`.
+2. Register one Entra app (single-tenant) with a **delegated `Files.Read`**
+   permission (user-consentable — no admin needed).
+3. Add the variables from `.dev.vars.example` to the Pages project settings.
+4. Sign in once and hit `/api/setup/graph` to connect the workbook, verify at
+   `/api/health`, then share the URL.
 
 ## Local development
 
 ```bash
-npm i -g @azure/static-web-apps-cli azure-functions-core-tools@4
-cp api/local.settings.json.example api/local.settings.json   # fill in secrets
-swa start app --api-location api                              # http://localhost:4280
+npm i -g wrangler
+cp .dev.vars.example .dev.vars     # fill in secrets
+npx wrangler pages dev app         # http://localhost:8788
 ```
 
 ## Related

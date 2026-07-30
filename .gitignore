@@ -2,11 +2,13 @@
 node_modules/
 npm-debug.log*
 
-# Azure Functions local settings (contains secrets — never commit)
-api/local.settings.json
-local.settings.json
+# Cloudflare / Wrangler
+.wrangler/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
 
-# Env
+# Env / secrets — never commit
 .env
 .env.*
 
