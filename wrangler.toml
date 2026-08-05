@@ -1,0 +1,16 @@
+# Cloudflare Pages project config for Ada Hub.
+# The static site is served from app/; API code lives in functions/ (file-based
+# routing, auto-detected by Pages). Secrets/vars are set in the Pages dashboard
+# (Settings -> Variables and Secrets), NOT here.
+
+name = "ada-hub"
+compatibility_date = "2024-11-01"
+pages_build_output_dir = "app"
+
+# Workers KV: caches the contributions payload and stores the owner's Graph
+# refresh token. Create a namespace (`npx wrangler kv namespace create ADA_KV`)
+# and paste its id below, or bind it in the Pages dashboard under
+# Settings -> Functions -> KV namespace bindings (binding name: ADA_KV).
+[[kv_namespaces]]
+binding = "ADA_KV"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"

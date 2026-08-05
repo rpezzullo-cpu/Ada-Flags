@@ -1,0 +1,33 @@
+# Copy to `.dev.vars` for local development with `wrangler pages dev`.
+# In production these are set in the Cloudflare Pages dashboard
+# (Settings -> Variables and Secrets). NEVER commit the real .dev.vars.
+
+# --- Entra ID (corporate sign-in + owner Graph consent) ---
+TENANT_ID="fbe43f29-18b2-46ca-a741-bcc4672ba19c"
+ENTRA_CLIENT_ID="<app-registration-application-client-id>"
+ENTRA_CLIENT_SECRET="<app-registration-client-secret-value>"
+
+# Random long string used to sign session cookies (generate your own).
+SESSION_SECRET="<paste-a-long-random-string>"
+
+# Public base URL of the app. Locally this is the wrangler dev URL.
+APP_BASE_URL="http://localhost:8788"
+
+# Who is allowed to run the one-time /api/setup/graph (defaults to JIRA_EMAIL).
+OWNER_EMAIL="rpezzullo@suitsupply.com"
+
+# --- Data sources ---
+DATA_SOURCE="both"
+
+# Excel (Microsoft Forms responses) via Microsoft Graph, read as the owner.
+EXCEL_SHARE_URL="https://suitsupply-my.sharepoint.com/:x:/r/personal/rpezzullo_suitsupply_com/_layouts/15/Doc.aspx?sourcedoc=%7B5826C24E-2D65-4A6A-A0C3-BF84059402D9%7D&file=Ada%20Flags%20form.xlsx"
+EXCEL_WORKSHEET=""
+
+# Jira AH (live ticket status).
+JIRA_BASE_URL="https://suitsupply.atlassian.net"
+JIRA_EMAIL="rpezzullo@suitsupply.com"
+JIRA_API_TOKEN="<atlassian-api-token>"
+JIRA_PROJECT="AH"
+
+# Local-only: skip the auth check on /api/contributions while developing.
+ALLOW_ANONYMOUS="true"

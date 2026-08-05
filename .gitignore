@@ -1,0 +1,18 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Cloudflare / Wrangler
+.wrangler/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+
+# Env / secrets — never commit
+.env
+.env.*
+
+# Editor / OS
+.DS_Store
+.vscode/
+*.log
