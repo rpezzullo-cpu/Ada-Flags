@@ -115,6 +115,34 @@ Each person does this once per device; everything else is automatic.
 - **Demo mode:** without a data link the page shows sample data — safe for the
   public internet; no real data is ever in the repo or the page itself.
 
+## Microsoft sign-in (verified identity + locked admin console)
+
+Out of the box, identity is self-declared. To upgrade to real Suitsupply
+sign-in (recommended before wide rollout — it locks the admin console to
+verified accounts and removes the manual name/email step):
+
+1. [portal.azure.com](https://portal.azure.com) → Microsoft Entra ID →
+   **App registrations → New registration**. Name `Ada Hub`, account type
+   **Single tenant**.
+2. **Authentication → Add a platform → Single-page application** →
+   Redirect URI `https://rpezzullo-cpu.github.io/Ada-Flags/`.
+3. Copy the **Application (client) ID** into `app/config.js`
+   (`ENTRA_CLIENT_ID`) — edit the file directly on GitHub if you like — and
+   commit. The site redeploys itself.
+
+That's the whole thing: no client secret, no admin consent, no cost. The
+client ID is public by design.
+
+## End-to-end test checklist (run after any pipeline change)
+
+1. Open the dashboard → **Flag a case** → submit a test flag via the form.
+2. Within ~1 min: thank-you message appears in the right Teams channel.
+3. A new AH ticket exists in Jira carrying your email.
+4. Refresh the dashboard → the flag appears (header count +1).
+5. Move the AH ticket to **Done** → threaded reply appears under the thank-you.
+6. With feed v2: the ticket shows **Acted On** + its AH link on My impact.
+7. Delete the test row from the workbook + the test AH ticket.
+
 ## Troubleshooting
 
 - **Still in demo mode after pasting the link** — open the link in a browser

@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ada Hub — CS Contribution Platform</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚩</text></svg>">
+<script src="https://alcdn.msauth.net/browser/2.38.4/js/msal-browser.min.js"></script>
+<script src="config.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -577,7 +580,7 @@
 
       <div class="card">
         <div class="card-title">Historical import — Virtual Assistant "Report an Issue"</div>
-        <div class="card-desc" style="margin-bottom:6px">The pre-launch submissions (old Microsoft Form), bundled from <b>Virtual Assistant - Report an Issue 3.xlsx</b> — from Savanah's first real submission (18 Jun 2026) onward. Test rows are already excluded.</div>
+        <div class="card-desc" style="margin-bottom:6px">The pre-launch submissions (old Microsoft Form), bundled from <b>Virtual Assistant - Report an Issue 3.xlsx</b> — from Savanah's first real submission (18 Jun 2026) onward. Test rows are already excluded. A few long descriptions are shortened in this bundle — the source workbook stays the source of truth for the permanent merge.</div>
         <div class="import-stat" id="histStats">Loading batch…</div>
         <div class="btn-row">
           <button class="btn" onclick="previewHistory()"><i class="ti ti-eye" style="vertical-align:-2px; margin-right:5px"></i>Preview batch</button>
@@ -838,6 +841,7 @@
   <div class="modal">
     <div class="modal-head"><div class="modal-ic" style="background:color-mix(in srgb,var(--accent) 14%,transparent); color:var(--accent)"><i class="ti ti-plug-connected"></i></div><div class="modal-title">Welcome to Ada Hub</div><button class="modal-x" onclick="closeSetup()" aria-label="Close">&times;</button></div>
     <div class="gate-note">One-time setup on this device. Your details personalise your profile; the team data link connects the live contribution feed (it's pinned in the Self-Service Troubleshooting channel).</div>
+    <div id="suMsWrap" style="display:none; margin-bottom:14px"><button class="btn" style="width:100%" onclick="signInMs()"><i class="ti ti-brand-windows" style="vertical-align:-2px; margin-right:6px"></i>Sign in with Microsoft</button><div class="hint" style="text-align:center; margin:8px 0 0">Recommended — verifies your Suitsupply identity. Or fill in manually below.</div></div>
     <label>Your name</label><input type="text" id="suName" placeholder="e.g. Jesse Harbers" style="margin-bottom:12px">
     <label>Your Suitsupply email</label><input type="text" id="suEmail" placeholder="name@suitsupply.com" style="margin-bottom:12px">
     <label>Team data link</label><div class="hint">Paste the Ada Hub data link from the pinned Teams message. Leave blank to explore in demo mode.</div>
@@ -879,13 +883,50 @@ const BASE_ADMINS=['rpezzullo@suitsupply.com'];
 function adminEmails(){return [...new Set([...BASE_ADMINS,...Store.get('extraAdmins',[])])];}
 function isAdmin(){return adminEmails().includes(myEmail());}
 
-/* ---------- identity (Entra ID SSO via the Cloudflare backend) ----------
-   /api/me returns the signed-in Suitsupply user (from the session cookie set
-   after Entra sign-in). We adopt that identity everywhere (chip, profile, "my"
-   filtering) so each person gets their own dedicated view after one login. The
-   backend middleware redirects unauthenticated visitors to sign in first.
-   Locally / signed out, this silently no-ops and the app runs in demo mode. */
-let SSO_ACTIVE=false;
+/* ---------- identity ----------
+   Three tiers, best available wins:
+   1. VERIFIED — real Microsoft (Entra ID) sign-in via MSAL, Suitsupply tenant
+      only. Enabled once ENTRA_CLIENT_ID is set in config.js. Required for the
+      admin console when configured.
+   2. SSO_ACTIVE — hosted-backend session (/api/me), when deployed behind one.
+   3. Self-declared — name/email typed at first run (demo & fallback). Fine for
+      personal views; never sufficient for admin once sign-in is configured. */
+let SSO_ACTIVE=false, VERIFIED=false, MSAL_APP=null;
+function msalReady(){return !!(window.ADA_CONFIG&&ADA_CONFIG.ENTRA_CLIENT_ID&&window.msal);}
+function adoptAccount(a){
+  const email=(a.username||'').toLowerCase();
+  if(!email.endsWith('@suitsupply.com')){toast('Please use your @suitsupply.com account');return false;}
+  Store.set('email',email);Store.set('name',a.name||nameFromEmail(email));Store.set('setupDone',true);
+  VERIFIED=true;SSO_ACTIVE=true;lockIdentityUI();return true;
+}
+async function initMsal(){
+  if(!msalReady())return;
+  try{
+    MSAL_APP=new msal.PublicClientApplication({
+      auth:{clientId:ADA_CONFIG.ENTRA_CLIENT_ID,
+            authority:'https://login.microsoftonline.com/'+ADA_CONFIG.TENANT_ID,
+            redirectUri:location.origin+location.pathname},
+      cache:{cacheLocation:'localStorage'}});
+    if(MSAL_APP.initialize)await MSAL_APP.initialize();
+    const resp=await MSAL_APP.handleRedirectPromise().catch(()=>null);
+    const acct=(resp&&resp.account)||MSAL_APP.getAllAccounts()[0];
+    if(acct)adoptAccount(acct);
+  }catch(e){/* sign-in stays available on demand */}
+}
+async function signInMs(){
+  if(!msalReady()){toast('Microsoft sign-in is not configured yet (see config.js)');return;}
+  try{
+    const r=await MSAL_APP.loginPopup({scopes:['openid','profile','email'],prompt:'select_account'});
+    if(r&&r.account&&adoptAccount(r.account)){
+      document.getElementById('setupOverlay').classList.remove('show');
+      syncChip();syncNav();renderLB();renderPeople();toast('Signed in as '+me());
+    }
+  }catch(e){
+    // Popup blocked → full-page redirect flow.
+    try{await MSAL_APP.loginRedirect({scopes:['openid','profile','email']});}catch(e2){toast('Sign-in failed');}
+  }
+}
+function signOutMs(){try{if(MSAL_APP)MSAL_APP.logoutRedirect({postLogoutRedirectUri:location.origin+location.pathname});}catch(e){}}
 function titleCaseName(s){return (s||'').trim().replace(/[._-]+/g,' ').replace(/\s+/g,' ')
   .split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1):'').join(' ').trim();}
 function nameFromEmail(email){const local=(email||'').split('@')[0]||'';
@@ -910,9 +951,11 @@ function lockIdentityUI(){
   const footer=document.querySelector('.side-footer');
   if(footer&&!document.getElementById('signOut')){
     const a=document.createElement('a');
-    a.id='signOut';a.href='/api/auth/logout';
-    a.className='chip-meta';a.style.cssText='display:block;text-align:center;margin-top:8px;color:var(--dim);text-decoration:none';
-    a.textContent='Sign out';footer.appendChild(a);
+    a.id='signOut';a.href='#';
+    a.className='chip-meta';a.style.cssText='display:block;text-align:center;margin-top:8px;color:var(--dim);text-decoration:none;cursor:pointer';
+    a.textContent='Sign out';
+    a.onclick=(e)=>{e.preventDefault();if(VERIFIED)signOutMs();else location.href='/api/auth/logout';};
+    footer.appendChild(a);
   }
 }
 
@@ -922,6 +965,7 @@ function lockIdentityUI(){
    Teams message so it never appears in the public repo). */
 function needsSetup(){return !SSO_ACTIVE && !Store.get('setupDone',false);}
 function openSetup(){
+  document.getElementById('suMsWrap').style.display=msalReady()?'block':'none';
   document.getElementById('suName').value=Store.get('name','')==='Ray Pezzullo'&&!Store.get('setupDone',false)?'':me();
   document.getElementById('suEmail').value=myEmail();
   document.getElementById('suFlow').value=Store.get('flowUrl','');
@@ -979,7 +1023,7 @@ function applyData(){
     HISTORY.records.forEach(h=>{const n=normalizeRecords([h])[0];if(n&&!seen.has(dedupeKey(n)))rows.push(n);});
   }
   if(Store.get('hideTests',true))rows=rows.filter(r=>!isTestRow(r));
-  DATA=rows;
+  DATA=mergeJira(rows);
 }
 async function loadHistory(){
   if(HISTORY!==null)return HISTORY;
@@ -1032,17 +1076,24 @@ const rb3=document.getElementById('raiseBtn3');if(rb3){rb3.style.cursor='pointer
 /* ---------- leaderboard ---------- */
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function rowsOf(name){return DATA.filter(r=>r.SubmittedBy===name);}
-function renderPeople(){const el=document.getElementById('peopleFilter');const ranked=agg(DATA);
+/* Privacy settings applied to public ranking views (this device's user only). */
+function boardData(){
+  let d=DATA;
+  if(!Store.get('p_board',true))d=d.filter(r=>!isMine(r));
+  else if(Store.get('p_anon',false))d=d.map(r=>isMine(r)?{...r,SubmittedBy:'Agent'}:r);
+  return d;
+}
+function renderPeople(){const el=document.getElementById('peopleFilter');const ranked=agg(boardData());
   el.innerHTML=`<div class="pill ${!activePerson?'active':''}" onclick="setPerson(null)"><span>Everyone</span><span class="pill-n">${DATA.length}</span></div>`+
     ranked.map(a=>`<div class="pill ${activePerson===a.name?'active':''}" onclick="openPerson('${esc(a.name).replace(/'/g,"\\'")}')"><span class="ppill"><span class="pav">${initials(a.name)}</span>${esc(a.name.split(' ')[0])}</span><span class="pill-n">${a.count}</span></div>`).join('');}
 function setPerson(n){activePerson=n;renderLB();renderPeople();}
 function changeWeek(d){weekOffset+=d;document.getElementById('nextW').disabled=weekOffset>=0;document.getElementById('weekLabel').textContent=weekLabel(weekOffset);renderLB();}
 function renderHighlights(){
-  const host=document.getElementById('hlStrip');const ranked=agg(DATA);
+  const host=document.getElementById('hlStrip');const BD=boardData();const ranked=agg(BD);
   if(!ranked.length){host.innerHTML='';return;}
   const byStreak=[...ranked].map(a=>({n:a.name,s:streakOf(rowsOf(a.name))})).sort((a,b)=>b.s-a.s)[0];
-  const week=agg(DATA.filter(r=>inWeek(r,0)))[0];
-  const newest=[...DATA].sort((a,b)=>new Date(a.SubmittedAt)-new Date(b.SubmittedAt)).reduce((m,r)=>{m[r.SubmittedBy]=r.SubmittedAt;return m;},{});
+  const week=agg(BD.filter(r=>inWeek(r,0)))[0];
+  const newest=[...BD].sort((a,b)=>new Date(a.SubmittedAt)-new Date(b.SubmittedAt)).reduce((m,r)=>{m[r.SubmittedBy]=r.SubmittedAt;return m;},{});
   const newestName=Object.entries(newest).sort((a,b)=>new Date(b[1])-new Date(a[1]))[0];
   host.innerHTML=[
     byStreak&&byStreak.s>0?`<div class="hl"><span class="hl-ic">🔥</span><div><div class="hl-name">${esc(byStreak.n.split(' ')[0])}</div><div class="hl-sub">Longest streak · ${byStreak.s} day${byStreak.s>1?'s':''}</div></div></div>`:'',
@@ -1051,8 +1102,8 @@ function renderHighlights(){
   ].filter(Boolean).join('');
 }
 function renderLB(){
-  let rows=DATA.filter(r=>inWeek(r,weekOffset));if(activePerson)rows=rows.filter(r=>r.SubmittedBy===activePerson);
-  const ranked=agg(rows),max=ranked[0]?.count||1,allRanked=agg(DATA);
+  const BD=boardData();let rows=BD.filter(r=>inWeek(r,weekOffset));if(activePerson)rows=rows.filter(r=>r.SubmittedBy===activePerson);
+  const ranked=agg(rows),max=ranked[0]?.count||1,allRanked=agg(BD);
   document.getElementById('sTotal').textContent=DATA.length;
   document.getElementById('sWeek').textContent=DATA.filter(r=>inWeek(r,0)).length;
   document.getElementById('sAgents').textContent=allRanked.length;
@@ -1087,7 +1138,7 @@ function openPerson(name){
 }
 function openCompare(pre){
   document.getElementById('personOverlay').classList.remove('show');
-  const names=agg(DATA).map(a=>a.name);
+  const names=agg(boardData()).map(a=>a.name);
   if(names.length<2){toast('Need at least two contributors');return;}
   const a=pre||names[0];
   document.getElementById('compareModal').innerHTML=`
@@ -1160,7 +1211,7 @@ function renderTickets(){
       <span class="tk-date">${new Date(t.SubmittedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</span>
     </div>
     <div class="tk-body">
-      <div class="tk-meta"><span>Flagged by <b>${t.SubmittedBy}</b></span><span>Order <b>${t.OrderNumber||'—'}</b></span><span>Email <b>${t.CustomerEmail||'—'}</b></span><span><b>${new Date(t.SubmittedAt).toLocaleString('en-GB')}</b></span></div>
+      <div class="tk-meta"><span>Flagged by <b>${t.SubmittedBy}</b></span><span>Order <b>${t.OrderNumber||'—'}</b></span>${t.JiraKey?`<span>Jira <b><a href="${(window.ADA_CONFIG&&ADA_CONFIG.JIRA_BROWSE_URL)||'https://suitsupply.atlassian.net/browse/'}${t.JiraKey}" target="_blank" rel="noopener" style="color:var(--accent)">${t.JiraKey}</a></b></span>`:''}<span><b>${new Date(t.SubmittedAt).toLocaleString('en-GB')}</b></span></div>
       <div class="section-label" style="margin:4px 0 6px">Notes &amp; context</div>
       <div class="notes" id="notes-${t._i}">${t.notes.length?t.notes.map(n=>`<div class="note"><div class="note-meta">${n.by} · ${n.t}</div>${n.txt}</div>`).join(''):'<div style="font-size:12px;color:var(--faint)">No notes yet.</div>'}</div>
       <div class="note-add"><input type="text" placeholder="Add a note or context…" id="ni-${t._i}" onkeydown="if(event.key==='Enter')addNote(${t._i})"><button class="btn" onclick="addNote(${t._i})">Add</button></div>
@@ -1439,12 +1490,28 @@ function normalizeRecords(rows){
     Status:           r.Status || r.status || ''
   })).filter(r=>r.SubmittedAt);
 }
+let JIRAX=[];
+function mapJiraStatus(n){n=(n||'').toLowerCase();if(!n)return '';
+  if(n==='done'||n==='closed'||n==='resolved')return 'Acted On';
+  if(n.includes('progress')||n.includes('review'))return 'In Review';return 'New';}
+/* Join live Jira status onto rows. No shared key exists between the workbook
+   and Jira, so match submitter email + calendar day (most recent issue wins). */
+function mergeJira(rows){
+  if(!JIRAX.length)return rows;
+  const by=new Map();
+  JIRAX.forEach(j=>{const e=(j.SubmitterEmail||j.email||'').toLowerCase();const d=fixDate(j.SubmittedAt||j.created);
+    if(!e||!d)return;const k=e+'|'+d.slice(0,10);const prev=by.get(k);
+    if(!prev||new Date(d)>new Date(prev._d))by.set(k,{...j,_d:d});});
+  return rows.map(r=>{const j=by.get((r.SubmitterEmail||'')+'|'+(r.SubmittedAt||'').slice(0,10));
+    return j?{...r,Status:mapJiraStatus(j.Status||j.status),JiraKey:j.Key||j.key||''}:r;});
+}
 async function loadFromFlow(){
   const u=(Store.get('flowUrl','')||'').trim();
   if(!u) throw new Error('no flow url');
   const res=await fetch(u,{headers:{'Accept':'application/json'}});
   if(!res.ok) throw new Error('flow '+res.status);
   const d=await res.json();
+  JIRAX=(!Array.isArray(d)&&Array.isArray(d.jira))?d.jira:[];
   const rows=normalizeRecords(Array.isArray(d)?d:(d.value||d.records||[]));
   if(!rows.length) throw new Error('flow returned no records');
   return rows;
@@ -1490,6 +1557,23 @@ function toggleNight(){const dark=(Store.get('theme','suitsupply')==='suitsupply
 function syncNav(){const el=document.getElementById('adminNav');if(el)el.style.display=isAdmin()?'block':'none';}
 function renderAdmin(){
   if(!isAdmin()){go('leaderboard');toast('Restricted to admins');return;}
+  // With Microsoft sign-in configured, an admin email alone is not enough —
+  // the account must be verified through Entra ID.
+  const v=document.getElementById('view-admin');
+  let gate=document.getElementById('admGate');
+  if(msalReady()&&!VERIFIED){
+    if(!gate){gate=document.createElement('div');gate.id='admGate';gate.className='card';v.insertBefore(gate,v.children[1]);}
+    gate.innerHTML='<div class="card-title">Verify it\'s you</div><div class="card-desc" style="margin-bottom:12px">The admin console requires a verified Suitsupply sign-in.</div><button class="btn" onclick="signInMs().then(()=>renderAdmin())"><i class="ti ti-brand-windows" style="vertical-align:-2px; margin-right:6px"></i>Sign in with Microsoft</button>';
+    [...v.querySelectorAll('.card')].forEach(c=>{if(c.id!=='admGate')c.style.display='none';});
+    return;
+  }
+  if(gate)gate.remove();
+  [...v.querySelectorAll('.card')].forEach(c=>c.style.display='');
+  let warn=document.getElementById('admWarn');
+  if(!msalReady()){
+    if(!warn){warn=document.createElement('div');warn.id='admWarn';warn.className='gate-note';v.insertBefore(warn,v.children[1]);}
+    warn.innerHTML='<i class="ti ti-alert-triangle" style="vertical-align:-2px"></i> <b>Identity is unverified.</b> Anyone entering an admin email in the welcome dialog can currently open this console. Enable “Sign in with Microsoft” (5 min, see <b>config.js</b> in the repo) to lock it to real Suitsupply accounts.';
+  } else if(warn){warn.remove();}
   // history batch
   const h=HISTORY&&HISTORY.records?HISTORY.records:[];
   const on=Store.get('includeHistory',false);
@@ -1533,7 +1617,8 @@ function removeAdmin(e){Store.set('extraAdmins',Store.get('extraAdmins',[]).filt
 
 /* ---------- init ---------- */
 async function init(){
-  await bootstrapIdentity();
+  await initMsal();
+  if(!VERIFIED)await bootstrapIdentity();
   document.documentElement.dataset.theme=Store.get('theme','suitsupply');
   const L=levels();[1,2,3,4].forEach(i=>{const el=document.getElementById('lvl'+i);if(el)el.value=L[i-1];});
   document.getElementById('setName').value=me();

@@ -65,8 +65,14 @@ python3 -m http.server 8788 -d app     # or any static server
 # open http://localhost:8788 — runs in demo mode
 ```
 
+## Verified sign-in
+
+`app/config.js` optionally enables **Sign in with Microsoft** (MSAL, Suitsupply
+tenant only). Once `ENTRA_CLIENT_ID` is set, identity is verified through Entra
+ID and the admin console requires a real sign-in. See docs/SETUP.md.
+
 ## Related
 
 - Pipeline runbook: *Ada Hub — Forms → Jira → Teams Pipeline (Runbook)* (Confluence).
-- Adaptive Cards for Teams (flag form, launcher, leaderboard, summary) live
-  alongside the pipeline; point their URL buttons at the live site.
+- Submissions happen through the Microsoft Form wired to the Power Automate
+  pipeline; the old Adaptive Cards are retired.

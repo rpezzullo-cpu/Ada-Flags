@@ -111,6 +111,70 @@ skip the Teams step (or post to the Self-Service Troubleshooting channel as a
 standalone message instead: Team ID `12fadb7e-2e4c-4bd0-b928-31630e31cad1`,
 Channel ID `19:acV8nrFb2DGW8j9N23CFFZAcoItGQVXeTmokmlyEPps1@thread.tacv2`).
 
+## Phase E — feed v2: live Jira status (recommended)
+
+The dashboard understands an extended feed payload and joins Jira status onto
+each ticket automatically (match: submitter email + same day). Upgrade the
+Phase A flow:
+
+1. After "List rows present in a table", add **Jira — Search issues (JQL)**
+   (or the Jira connector's issue-search action): JQL `project = AH ORDER BY created DESC`,
+   max results 100+.
+2. Add a second **Select** over the Jira results mapping:
+   | Key | Value |
+   | --- | --- |
+   | `email` | `customfield_17255` (Submitter Email) |
+   | `created` | created date |
+   | `status` | status name |
+   | `key` | issue key |
+3. Change the **Response** body from the bare Select output to:
+   `{ "records": <output of Select 1>, "jira": <output of Select 2> }`
+   (Compose the object with dynamic content; Peek Code to confirm both are
+   single-`@` expressions.)
+
+The dashboard accepts BOTH shapes (bare array or `{records, jira}`), so this
+can be done any time without breaking anything. Once live, "My impact" shows
+each ticket's real Jira status and a link to its AH issue.
+
+## Phase F — richer thank-you message in Teams (requested)
+
+Edit **Ada Hub - Case Intake v2** (`c02e5bbc-5c41-4310-b686-7587d7cc26e2`):
+replace the plain thank-you text in BOTH branches' "Post message in a chat or
+channel" with this template, filling placeholders from the form's dynamic
+fields (verify the real question names on the form first; omit lines whose
+field doesn't exist on the form yet):
+
+> 🚩 **Ada case flagged — thank you!**
+> **Flagged by:** {responder name}
+> **Case ID:** {Salesforce case number}
+> **SF link:** https://suitsupply.lightning.force.com/lightning/r/Case/{SF-Id}/view *(only if an SF record Id is available — see note)*
+> **Order:** {order number, or "—"}
+> **Customer:** {customer email / phone, or "—"}
+> **Issue:** {issue description}
+
+Notes:
+- The C-number (e.g. C-03688482) is NOT the record Id used in Lightning URLs
+  (500…). A clickable SF link therefore requires the Salesforce enrichment
+  below, OR a form field where agents paste the case URL directly.
+- **Salesforce enrichment (prerequisite check, do not build until confirmed):**
+  needs the Power Automate **Salesforce connector** (Premium — licence now in
+  place) signed in as a Suitsupply Salesforce user whose profile allows API
+  access. If IT/SF-admin approval for the connected app is pending (it was
+  earlier), stop and report. Once available: after "Get response details", add
+  Salesforce **Get records** on the Case object with `CaseNumber = {form C-number}`
+  → take the record's Id (→ Lightning URL), Contact email/phone, and Order
+  reference → use them in the message template and Jira description.
+- Keep both branches' Peek Code single-`@` clean, and confirm the message still
+  posts as Flow bot in the same channels.
+
+## Phase G — reliability (quick)
+
+For all three flows (Intake v2, Case Completed, Data Feed): open flow →
+**... → Properties/Settings** and make sure **failure notification emails** are
+on (default is on for the owner — confirm), and add Ray as **co-owner** plus
+the two other admins so the flows are not single-owner. Do the same
+share for the workbook and the Microsoft Form (Share → specific people).
+
 ## Wrap-up
 
 Report back: the Phase A flow URL, what was cleaned in Phase B, and whether
