@@ -21,8 +21,8 @@ only **reads** the responses workbook.
 sign-in. Each person identifies themselves once on their device (name + email),
 and the data link acts as the key — shared only inside Teams, never published
 in the repo. Leaderboard-grade data only; customer PII is stripped by the flow
-(Step 2). The full SSO design is kept in [docs/CLOUDFLARE.md](CLOUDFLARE.md) as
-an upgrade path if the constraints ever change.
+(Step 2). Verified identity is available
+via "Sign in with Microsoft" (see below).
 
 ---
 
@@ -97,8 +97,7 @@ Create a new flow named **"Ada Hub - Data Feed"**:
    > link when asked: `<flow URL>`
 
 3. Optionally add the dashboard as a **Teams tab** (Website tab type) in the
-   channel, and point the "View full leaderboard" button of
-   `weekly_leaderboard_card.json` at the site.
+   channel.
 
 Each person does this once per device; everything else is automatic.
 
@@ -110,8 +109,8 @@ Each person does this once per device; everything else is automatic.
   free-tier HTTP limits are far above CS-team traffic).
 - **Per-person view:** profile/impact/tickets match rows by the email entered at
   first run against the form's submitter email.
-- **Status:** estimated from ticket age (New → In Review → Acted On → Closed).
-  Live Jira status needs a server and is part of the Cloudflare upgrade path.
+- **Status:** live from Jira when the feed returns the v2 payload
+  (see docs/COWORK_PROMPT.md, Phase E); otherwise estimated from ticket age.
 - **Demo mode:** without a data link the page shows sample data — safe for the
   public internet; no real data is ever in the repo or the page itself.
 
@@ -163,7 +162,6 @@ client ID is public by design.
 - The data link is the key: it lives in Teams (tenant-only) and in each user's
   browser storage, never in the repo. It returns leaderboard-grade data with
   customer PII stripped at the source.
-- Identity is self-declared (no SSO) — fine for gamification and personal
-  views; not an authorization boundary. If that ever needs to harden, the
-  Cloudflare + Entra design in [docs/CLOUDFLARE.md](CLOUDFLARE.md) adds true
-  corporate sign-in at ~$0 (it needs an Entra app registration).
+- Identity is self-declared until "Sign in with Microsoft" is enabled (see
+  above) — then identities are verified against Entra ID and the admin console
+  is locked to verified admin accounts.
