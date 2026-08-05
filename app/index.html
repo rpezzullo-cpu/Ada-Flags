@@ -530,7 +530,14 @@
         <div class="stat"><span class="stat-val" id="sAgents">—</span><span class="stat-lbl">Contributors</span></div>
         <div class="stat"><span class="stat-val" id="sAvg">—</span><span class="stat-lbl">Avg / person</span></div>
       </div>
-      <div class="toolbar"><div class="week-nav"><button class="nav-btn" onclick="changeWeek(-1)">← prev</button><span class="week-label" id="weekLabel">This week</span><button class="nav-btn" id="nextW" onclick="changeWeek(1)" disabled>next →</button></div><button class="nav-btn" onclick="openCompare()"><i class="ti ti-arrows-left-right" style="vertical-align:-2px"></i> Compare</button></div>
+      <div class="toolbar">
+        <div class="week-nav">
+          <div class="seg" id="periodSeg"><button data-v="week" onclick="setPeriod('week')">Week</button><button data-v="month" onclick="setPeriod('month')">Month</button><button data-v="custom" onclick="setPeriod('custom')">Custom</button></div>
+          <button class="nav-btn" id="prevW" onclick="changeWeek(-1)">←</button><span class="week-label" id="weekLabel">This week</span><button class="nav-btn" id="nextW" onclick="changeWeek(1)" disabled>→</button>
+        </div>
+        <div id="customRange" style="display:none; gap:8px; align-items:center"><input type="date" id="cFrom" class="search" style="min-width:150px" onchange="setCustomRange()"><span style="color:var(--dim)">→</span><input type="date" id="cTo" class="search" style="min-width:150px" onchange="setCustomRange()"></div>
+        <button class="nav-btn" onclick="openCompare()"><i class="ti ti-arrows-left-right" style="vertical-align:-2px"></i> Compare</button>
+      </div>
       <div class="pill-row" id="peopleFilter"></div>
       <div class="lb-list" id="lbList"></div>
     </section>
@@ -704,7 +711,7 @@
 
       <div class="card">
         <div class="card-title">Privacy</div>
-        <div class="card-desc" style="margin-bottom:8px">Control your visibility to teammates.</div>
+        <div class="card-desc" style="margin-bottom:8px">Control your visibility to teammates. Opting out takes effect immediately on the leaderboard, highlights and comparisons. Only your name, submission count and case notes are shown — never used for performance reviews. Questions: contact an admin (Contacts page).</div>
         <div id="tog-privacy"></div>
       </div>
 
@@ -743,12 +750,6 @@
         <label>Team data link</label>
         <div class="hint">The Ada Hub data feed (Power Automate URL) from the pinned Teams message. Takes priority over the sources below.</div>
         <input type="text" id="setFlowUrl" placeholder="https://prod-…logic.azure.com/workflows/…">
-        <div style="height:12px"></div>
-        <label>SharePoint site URL</label>
-        <input type="text" id="setSite" placeholder="https://suitsupply.sharepoint.com/sites/…">
-        <div style="height:12px"></div>
-        <label>List name</label>
-        <input type="text" id="setList" value="Ada Case Escalations">
         <div style="height:12px"></div>
         <label>Ticket form URL</label>
         <div class="hint">The Microsoft Form behind every “Raise a ticket” button. Leave blank to open the Teams channel instead.</div>
@@ -879,7 +880,7 @@ const TEAMS_URL='https://teams.microsoft.com/l/channel/19%3AacV8nrFb2DGW8j9N23CF
 /* The Microsoft Form wired to the intake flow — every "Flag a case" button opens this. */
 const DEFAULT_FORM_URL='https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=KT_k-7IYykanQbzEZyuhnBYVObjUAkZHpQPgqKY2JcVUMzU0WkNUQUZRMkZEOFZWMzhMV0w4S1JOVC4u';
 function ticketUrl(){return (Store.get('formUrl','')||'').trim()||DEFAULT_FORM_URL;}
-const BASE_ADMINS=['rpezzullo@suitsupply.com'];
+const BASE_ADMINS=['rpezzullo@suitsupply.com','lmackie@suitsupply.com','lspieth@suitsupply.com'];
 function adminEmails(){return [...new Set([...BASE_ADMINS,...Store.get('extraAdmins',[])])];}
 function isAdmin(){return adminEmails().includes(myEmail());}
 
@@ -1087,7 +1088,34 @@ function renderPeople(){const el=document.getElementById('peopleFilter');const r
   el.innerHTML=`<div class="pill ${!activePerson?'active':''}" onclick="setPerson(null)"><span>Everyone</span><span class="pill-n">${DATA.length}</span></div>`+
     ranked.map(a=>`<div class="pill ${activePerson===a.name?'active':''}" onclick="openPerson('${esc(a.name).replace(/'/g,"\\'")}')"><span class="ppill"><span class="pav">${initials(a.name)}</span>${esc(a.name.split(' ')[0])}</span><span class="pill-n">${a.count}</span></div>`).join('');}
 function setPerson(n){activePerson=n;renderLB();renderPeople();}
-function changeWeek(d){weekOffset+=d;document.getElementById('nextW').disabled=weekOffset>=0;document.getElementById('weekLabel').textContent=weekLabel(weekOffset);renderLB();}
+/* Ranking period: week (default), calendar month (for the monthly CS/OPS
+   meeting + prize), or a custom date range. */
+let period=Store.get('period','week'), customFrom=null, customTo=null;
+function periodRange(off){
+  const n=new Date();
+  if(period==='month'){const s=new Date(n.getFullYear(),n.getMonth()+off,1);const e=new Date(n.getFullYear(),n.getMonth()+off+1,0);e.setHours(23,59,59,999);return{start:s,end:e};}
+  if(period==='custom'&&customFrom&&customTo){const s=new Date(customFrom);s.setHours(0,0,0,0);const e=new Date(customTo);e.setHours(23,59,59,999);return{start:s,end:e};}
+  return weekRange(off);
+}
+function periodLabel(off){
+  if(period==='month'){if(off===0)return'This month';if(off===-1)return'Last month';return periodRange(off).start.toLocaleDateString('en-GB',{month:'long',year:'numeric'});}
+  if(period==='custom')return customFrom&&customTo?'Custom range':'Pick dates →';
+  return weekLabel(off);
+}
+function inPeriod(it){if(period==='custom'&&(!customFrom||!customTo))return true;
+  const d=new Date(it.SubmittedAt);const{start,end}=periodRange(weekOffset);return d>=start&&d<=end;}
+function syncPeriodUI(){
+  document.getElementById('weekLabel').textContent=periodLabel(weekOffset);
+  document.querySelectorAll('#periodSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===period));
+  const nav=period!=='custom';
+  document.getElementById('prevW').style.display=nav?'':'none';
+  document.getElementById('nextW').style.display=nav?'':'none';
+  document.getElementById('customRange').style.display=period==='custom'?'flex':'none';
+  document.getElementById('nextW').disabled=weekOffset>=0;
+}
+function setPeriod(p){period=p;Store.set('period',p);weekOffset=0;syncPeriodUI();renderLB();}
+function setCustomRange(){customFrom=document.getElementById('cFrom').value;customTo=document.getElementById('cTo').value;syncPeriodUI();if(customFrom&&customTo)renderLB();}
+function changeWeek(d){if(period==='custom')return;weekOffset+=d;syncPeriodUI();renderLB();}
 function renderHighlights(){
   const host=document.getElementById('hlStrip');const BD=boardData();const ranked=agg(BD);
   if(!ranked.length){host.innerHTML='';return;}
@@ -1102,7 +1130,7 @@ function renderHighlights(){
   ].filter(Boolean).join('');
 }
 function renderLB(){
-  const BD=boardData();let rows=BD.filter(r=>inWeek(r,weekOffset));if(activePerson)rows=rows.filter(r=>r.SubmittedBy===activePerson);
+  const BD=boardData();let rows=BD.filter(inPeriod);if(activePerson)rows=rows.filter(r=>r.SubmittedBy===activePerson);
   const ranked=agg(rows),max=ranked[0]?.count||1,allRanked=agg(BD);
   document.getElementById('sTotal').textContent=DATA.length;
   document.getElementById('sWeek').textContent=DATA.filter(r=>inWeek(r,0)).length;
@@ -1410,7 +1438,7 @@ function initSeg(id,key,def,apply){const el=document.getElementById(id);const cu
 function saveIdentity(){const v=document.getElementById('setName').value.trim();if(v)Store.set('name',v);Store.set('role',document.getElementById('setRole').value);Store.set('team',document.getElementById('setTeam').value);syncChip();renderProfile();toast('Identity saved');}
 function saveLevels(){const L=[1,2,3,4].map(i=>Math.max(1,parseInt(document.getElementById('lvl'+i).value)||1));Store.set('levels',L);renderLB();renderProfile();syncChip();toast('Thresholds updated');}
 function savePrefs(){Store.set('lang',document.getElementById('setLang').value);Store.set('tz',document.getElementById('setTz').value);Store.set('df',document.getElementById('setDf').value);Store.set('channel',document.getElementById('setChannel').value);toast('Preferences saved');}
-function saveSource(){Store.set('flowUrl',document.getElementById('setFlowUrl').value.trim());Store.set('site',document.getElementById('setSite').value.trim());Store.set('list',document.getElementById('setList').value.trim());Store.set('formUrl',document.getElementById('setFormUrl').value.trim());document.getElementById('srcStatus').textContent='Reloading…';loadData().then(()=>{TICKETS=[];enrichTickets();document.getElementById('srcStatus').textContent=(LIVE?'Live · ':'Demo · ')+DATA.length+' records';renderPeople();renderLB();toast('Saved');});}
+function saveSource(){Store.set('flowUrl',document.getElementById('setFlowUrl').value.trim());Store.set('formUrl',document.getElementById('setFormUrl').value.trim());document.getElementById('srcStatus').textContent='Reloading…';loadData().then(()=>{TICKETS=[];enrichTickets();document.getElementById('srcStatus').textContent=(LIVE?'Live · ':'Demo · ')+DATA.length+' records';renderPeople();renderLB();toast('Saved');});}
 function exportMyData(){const mine=DATA.filter(r=>r.SubmittedBy===me());const blob=new Blob([JSON.stringify({user:me(),flags:mine},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='my-ada-data.json';a.click();toast('Your data exported');}
 function clearLocal(){['theme','density','textsize','a11y_motion','a11y_contrast','a11y_dys','n_milestone','n_digest','n_mention','n_dup','n_impact','p_board','p_anon','p_activity','role','team','lang','tz','df','channel'].forEach(k=>Store.del(k));applyDisplay();renderThemes();renderToggles();toast('Local settings reset');}
 
@@ -1466,9 +1494,7 @@ window.addEventListener('beforeunload',wipeRoom);
       contributions JSON (each user pastes it once; stored on this device only).
    2. /api/contributions  — an optional hosted backend (e.g. Cloudflare Functions),
       when the page is deployed behind one.
-   3. SharePoint REST direct — only works when the page is served from a
-      SharePoint site itself (same-origin cookie). Kept as an optional fallback.
-   4. demo() — sample data so the UI always renders (not yet connected).
+   3. demo() — sample data so the UI always renders (not yet connected).
 */
 function fixDate(v){
   if(v==null||v==='')return null;
@@ -1522,23 +1548,13 @@ async function loadFromApi(){
   const d=await res.json();
   return normalizeRecords(Array.isArray(d)?d:(d.value||d.records||[]));
 }
-async function loadFromSharePoint(){
-  const site=Store.get('site','').trim(),list=Store.get('list','Ada Case Escalations').trim();
-  if(!site) throw new Error('no sharepoint site configured');
-  const url=`${site}/_api/web/lists/getbytitle('${encodeURIComponent(list)}')/items?$select=SubmittedBy,SubmittedAt,UseCase,CaseNumber,OrderNumber,CustomerEmail,IssueDescription&$top=5000`;
-  const res=await fetch(url,{headers:{'Accept':'application/json;odata=nometadata'},credentials:'include'});
-  if(!res.ok) throw new Error('sharepoint '+res.status);
-  const d=await res.json();
-  return normalizeRecords(d.value);
-}
 async function loadData(){
   const sub=document.getElementById('lbSub');
   await loadHistory();
   LIVE=false;
   try{ RAW=await loadFromFlow(); LIVE=true; }
   catch(e){ try{ RAW=await loadFromApi(); LIVE=true; }
-  catch(e2){ try{ RAW=await loadFromSharePoint(); LIVE=true; }
-  catch(e3){ demo(); RAW=DATA; } } }
+  catch(e2){ demo(); RAW=DATA; } }
   applyData();
   if(LIVE) sub.textContent='Live data · '+DATA.length+' contributions'+(Store.get('includeHistory',false)?' (incl. imported history)':'');
   else sub.innerHTML='Demo mode · <a href="#" onclick="openSetup();return false" style="color:var(--accent)">connect your team data</a>';
@@ -1629,14 +1645,12 @@ async function init(){
   document.getElementById('setDf').value=Store.get('df','DD/MM/YYYY');
   document.getElementById('setChannel').value=Store.get('channel','Teams DM');
   document.getElementById('setFlowUrl').value=Store.get('flowUrl','');
-  document.getElementById('setSite').value=Store.get('site','');
-  document.getElementById('setList').value=Store.get('list','Ada Case Escalations');
   document.getElementById('setFormUrl').value=Store.get('formUrl','');
   renderThemes();renderToggles();renderFAQ();
   initSeg('segDensity','density','comfortable',true);
   initSeg('segText','textsize','normal',true);
   applyDisplay();
-  document.getElementById('weekLabel').textContent=weekLabel(0);
+  syncPeriodUI();
   syncNight();syncNav();
   loadData().then(()=>{enrichTickets();renderPeople();renderLB();syncChip();syncNav();
     if(needsSetup())openSetup();});

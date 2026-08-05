@@ -50,14 +50,6 @@ The frontend accepts this from any source (team data link, a hosted `/api`, or
 SharePoint REST) and estimates ticket status from age when no live status is
 provided.
 
-## Upgrade path: true corporate SSO
-
-`functions/` contains a complete **Cloudflare Pages + Entra ID** backend
-(tenant-locked sign-in, server-side secrets, live Jira status). It isn't used by
-the GitHub Pages deployment, but it's ready if the team later wants verified
-`@suitsupply.com` sign-in — see **[docs/CLOUDFLARE.md](docs/CLOUDFLARE.md)**.
-Still ~$0; it needs one Entra app registration.
-
 ## Local preview
 
 ```bash
