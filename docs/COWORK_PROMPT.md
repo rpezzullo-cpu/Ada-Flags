@@ -2,9 +2,11 @@
 
 Copy everything below the line into a Cowork / Claude-in-Chrome session
 (the same kind used to build "Ada Hub - Case Intake v2" and "Ada Hub - Case
-Completed"). Priorities: **A + E** make the dashboard live with real statuses and **H** puts
-the Salesforce case number on every Jira card; **B, C, F, G** are recommended;
-**D** optional. Salesforce API work is postponed — skip anything needing it.
+Completed"). Priorities: **Phase 0 first** (store-channel submissions are broken in
+production — fix before Ray's next store test); then **A + E** make the
+dashboard live with real statuses and **H** puts the Salesforce case number on
+every Jira card; **B, C, F, G** recommended; **D** optional. Salesforce API
+work is postponed — skip anything needing it.
 
 ---
 
@@ -27,6 +29,48 @@ Forms → Jira → Teams Pipeline (Runbook)"):
   saving, always Peek Code and verify single-`@`, never trust the pill.
 - For searchable dropdowns, type a non-matching string (e.g. "zzzznomatch")
   first to surface the "Enter custom value" option safely.
+
+## Phase 0 — FIX FIRST: store-channel submissions fail (post-as-bot not authorized)
+
+**Confirmed broken in production.** Two store submissions failed last week
+(a store assistant + Ray from a store channel). Root cause per Ray, consistent
+with the data: the Teams thank-you post runs **as Flow bot**, which is not
+authorized in the store channels — and in the Store branch the Teams post comes
+**before** "Create a new issue (V3)", so the failure also kills the Jira
+ticket. That is why all 17 AH issues to date say "Customer Service HQ" and
+zero carry a store name.
+
+1. **Verify the root cause first:** Flow 1 (`c02e5bbc-5c41-4310-b686-7587d7cc26e2`)
+   → Run history → open last week's failed runs → confirm the error sits on the
+   Store branch's "Post message in a chat or channel" (expect a Forbidden /
+   bot-not-in-team style error). If the error is something else, stop and
+   report before changing anything.
+2. **The fix — change "Post as" from `Flow bot` to `User`** (the connection
+   owner = Ray, who has posting rights in all store channels) on **all three**
+   Teams actions:
+   - Flow 1, Store branch → "Post message in a chat or channel"
+   - Flow 1, CS HQ branch → "Post message in a chat or channel 2" (works today
+     as Flow bot, but all messages should consistently come from Ray)
+   - Flow 2 (`200bc692-7da1-42ee-a9f3-886dd7e52917`) → "Reply with a message in
+     a channel" (currently Post as Flow bot — the completion reply into a store
+     channel would hit exactly the same wall)
+   The action's message-ID output shape is unchanged, so the
+   `customfield_17256` capture keeps working. Peek Code after saving.
+3. **Hardening (recommended):** in the Store branch, protect the Jira ticket
+   from any future Teams failure — either set "Create a new issue (V3)"'s
+   *Configure run after* to also run when the post fails (then Origin Message
+   ID is empty for those runs, which Flow 2 must tolerate — see Phase D's
+   condition), or reorder Create-before-Post and add a Jira "Edit issue" step
+   after the post to set `customfield_17256`. Pick one; don't leave a ticket
+   dependent on a Teams post succeeding.
+4. Tell Ray when this is done — he will run the real store test himself
+   (submit from the Amsterdam store channel) and verify: thank-you appears in
+   the Amsterdam channel *from Ray's account*, AH ticket has Store/Team Name =
+   the store, and Done → threaded reply lands in the same thread.
+
+*(Manual fallback without this session: open each of the three Teams actions in
+the designer and switch the "Post as" dropdown from Flow bot to User, save —
+about 2 minutes.)*
 
 ## Phase A — build the "Ada Hub - Data Feed" flow (required)
 
