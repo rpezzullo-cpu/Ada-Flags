@@ -2,9 +2,9 @@
 
 Copy everything below the line into a Cowork / Claude-in-Chrome session
 (the same kind used to build "Ada Hub - Case Intake v2" and "Ada Hub - Case
-Completed"). Priorities: **A + E** make the dashboard live with real statuses;
-**B, C, F, G** are recommended; **D** optional. Salesforce work is postponed —
-skip anything that needs SF API access.
+Completed"). Priorities: **A + E** make the dashboard live with real statuses and **H** puts
+the Salesforce case number on every Jira card; **B, C, F, G** are recommended;
+**D** optional. Salesforce API work is postponed — skip anything needing it.
 
 ---
 
@@ -184,6 +184,44 @@ For all three flows (Intake v2, Case Completed, Data Feed): open flow →
 on (default is on for the owner — confirm), and add Ray as **co-owner** plus
 the two other admins so the flows are not single-owner. Do the same
 share for the workbook and the Microsoft Form (Share → specific people).
+
+## Phase H — Jira cards must show the Salesforce case number (requested)
+
+Today every AH issue's summary is literally `"Ada Flag: "` — the case number
+the agent typed into the form never reaches Jira, so the board is unreadable
+without opening the workbook.
+
+**Future flags (the durable fix).** Edit **Ada Hub - Case Intake v2**
+(`c02e5bbc-5c41-4310-b686-7587d7cc26e2`), in BOTH branches' "Create a new
+issue (V3)":
+1. **Summary:** `Ada Flag: ` + the form's case-number dynamic field (so cards
+   read "Ada Flag: C-03712345"). If the agent left it blank the summary just
+   stays "Ada Flag: " — acceptable.
+2. **Description:** prepend a first line `Salesforce case: ` + the same field,
+   then a blank line, then the existing issue-description field.
+3. Peek Code both branches (single-`@`), save, submit one test flag and verify
+   the new card shows the C-number; clean up the test afterwards.
+
+**Existing cards (backfill).** The real issues are **AH-8, AH-9, AH-10, AH-12,
+AH-13, AH-14, AH-15, AH-16, AH-17** (AH-1…7 and AH-11 are tests). For each:
+find its row in **Ada Flags form.xlsx** (match submitter email + submission
+time ≈ Jira created time, listed below), take the row's case number, and update
+the issue summary to `Ada Flag: {C-number}` (keep everything else unchanged).
+
+| Issue | Submitter | Created (CET) |
+| --- | --- | --- |
+| AH-8 | FMilas | 2026-08-03 08:13 |
+| AH-9 | FMilas | 2026-08-03 08:15 |
+| AH-10 | FMilas | 2026-08-03 10:35 |
+| AH-12 | FSantosBarreto | 2026-08-05 10:09 |
+| AH-13 | WEnnakib | 2026-08-05 14:00 |
+| AH-14 | SZotescu | 2026-08-07 11:28 |
+| AH-15 | SZotescu | 2026-08-08 11:10 |
+| AH-16 | KPeque | 2026-08-09 09:46 |
+| AH-17 | KRebeloNazareth | 2026-08-09 17:19 |
+
+(The dashboard needs no change — its ticket cards already lead with the
+case number, fed by the `CaseNumber` mapping in Phase A.)
 
 ## Wrap-up
 
