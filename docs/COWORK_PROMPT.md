@@ -2,7 +2,9 @@
 
 Copy everything below the line into a Cowork / Claude-in-Chrome session
 (the same kind used to build "Ada Hub - Case Intake v2" and "Ada Hub - Case
-Completed"). Phases B–D are optional; A is the one that makes the dashboard live.
+Completed"). Priorities: **A + E** make the dashboard live with real statuses;
+**B, C, F, G** are recommended; **D** optional. Salesforce work is postponed —
+skip anything that needs SF API access.
 
 ---
 
@@ -136,36 +138,44 @@ The dashboard accepts BOTH shapes (bare array or `{records, jira}`), so this
 can be done any time without breaking anything. Once live, "My impact" shows
 each ticket's real Jira status and a link to its AH issue.
 
-## Phase F — richer thank-you message in Teams (requested)
+## Phase F — richer thank-you message in Teams (form-fields only; no Salesforce)
 
-Edit **Ada Hub - Case Intake v2** (`c02e5bbc-5c41-4310-b686-7587d7cc26e2`):
-replace the plain thank-you text in BOTH branches' "Post message in a chat or
-channel" with this template, filling placeholders from the form's dynamic
-fields (verify the real question names on the form first; omit lines whose
-field doesn't exist on the form yet):
+Decisions (2026-08): **Salesforce API enrichment is postponed** (low priority —
+do NOT build it or raise SF tickets), and the flows keep posting through
+**Ray's existing connection** (no separate bot account for the store teams —
+that is the accepted setup, leave the connections as they are).
 
-> 🚩 **Ada case flagged — thank you!**
-> **Flagged by:** {responder name}
-> **Case ID:** {Salesforce case number}
-> **SF link:** https://suitsupply.lightning.force.com/lightning/r/Case/{SF-Id}/view *(only if an SF record Id is available — see note)*
-> **Order:** {order number, or "—"}
-> **Customer:** {customer email / phone, or "—"}
-> **Issue:** {issue description}
+1. Open the live intake form and list its actual questions first.
+2. **Add one optional question** to the form (safe: Forms appends a new column
+   to the response workbook; existing flows are unaffected):
+   - "Salesforce case link (paste from your browser)" — text. This gives the
+     clickable case link with zero Salesforce integration.
+   - Only if Ray confirms he also wants Order / Customer lines in the message:
+     add optional "Order number" and "Customer email or phone" questions the
+     same way.
+3. Edit **Ada Hub - Case Intake v2** (`c02e5bbc-5c41-4310-b686-7587d7cc26e2`):
+   replace the plain thank-you text in BOTH branches' "Post message in a chat
+   or channel" with this template — include only lines whose field exists on
+   the form, using each branch's own dynamic fields:
 
-Notes:
-- The C-number (e.g. C-03688482) is NOT the record Id used in Lightning URLs
-  (500…). A clickable SF link therefore requires the Salesforce enrichment
-  below, OR a form field where agents paste the case URL directly.
-- **Salesforce enrichment (prerequisite check, do not build until confirmed):**
-  needs the Power Automate **Salesforce connector** (Premium — licence now in
-  place) signed in as a Suitsupply Salesforce user whose profile allows API
-  access. If IT/SF-admin approval for the connected app is pending (it was
-  earlier), stop and report. Once available: after "Get response details", add
-  Salesforce **Get records** on the Case object with `CaseNumber = {form C-number}`
-  → take the record's Id (→ Lightning URL), Contact email/phone, and Order
-  reference → use them in the message template and Jira description.
-- Keep both branches' Peek Code single-`@` clean, and confirm the message still
-  posts as Flow bot in the same channels.
+   > 🚩 **Ada case flagged — thank you!**
+   > **Flagged by:** {responder name}
+   > **Case ID:** {Salesforce case number}
+   > **SF link:** {pasted Salesforce case link}
+   > **Order:** {order number}
+   > **Customer:** {customer email / phone}
+   > **Issue:** {issue description}
+
+4. Map any newly added form columns into the Phase A feed flow's Select as well
+   (e.g. `SalesforceLink`, `OrderNumber`, `CustomerContact`) so the dashboard
+   ticket details stay in sync.
+5. Keep both branches' Peek Code single-`@` clean, then post a test submission
+   and verify the message renders with all lines (delete the test row + ticket
+   afterwards).
+
+*(Backlog — do not build now: Salesforce Get-records enrichment to auto-resolve
+C-numbers into record links + customer context. Requires SF API access for the
+Power Automate Salesforce connector; parked until prioritised.)*
 
 ## Phase G — reliability (quick)
 
